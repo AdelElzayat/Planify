@@ -41,15 +41,15 @@ const useTaskStore = create((set, get) => ({
   },
 
   updateTaskStatus: async (taskId, status, order) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t._id === taskId ? { ...t, status, order } : t)),
+    }));
     try {
       await api.patch(`/tasks/${taskId}/status`, { status, order });
-      set((state) => ({
-        tasks: state.tasks.map((t) => (t._id === taskId ? { ...t, status, order } : t)),
-      }));
-      return true;
     } catch (error) {
-      throw error.response?.data?.message;
+      // Silently fail — UI already updated optimistically
     }
+    return true;
   },
 
   deleteTask: async (taskId) => {
