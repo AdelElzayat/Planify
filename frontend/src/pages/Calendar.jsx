@@ -86,24 +86,24 @@ export default function CalendarPage() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-2xl font-bold text-dark-900 dark:text-dark-100">Calendar</h1>
-        <p className="text-dark-500 dark:text-dark-400 mt-1">Track deadlines and milestones</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-dark-900 dark:text-dark-100">Calendar</h1>
+        <p className="text-sm sm:text-base text-dark-500 dark:text-dark-400 mt-1">Track deadlines and milestones</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Calendar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 card p-6"
+          className="lg:col-span-2 card p-3 sm:p-6"
         >
           {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                <FiCalendar className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-between mb-3 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
+                <FiCalendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h2 className="text-lg font-semibold text-dark-900 dark:text-dark-100">
+              <h2 className="text-sm sm:text-lg font-semibold text-dark-900 dark:text-dark-100">
                 {months[currentDate.getMonth()]} {currentDate.getFullYear()}
               </h2>
             </div>
@@ -112,38 +112,38 @@ export default function CalendarPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={prevMonth}
-                className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
               >
-                <FiChevronLeft className="w-5 h-5 text-dark-500" />
+                <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-dark-500" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={nextMonth}
-                className="p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
               >
-                <FiChevronRight className="w-5 h-5 text-dark-500" />
+                <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-dark-500" />
               </motion.button>
             </div>
           </div>
 
           {/* Day names */}
-          <div className="grid grid-cols-7 gap-1 mb-3">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-3">
             {daysOfWeek.map((day) => (
-              <div key={day} className="text-center text-xs font-medium text-dark-500 dark:text-dark-400 py-2">
+              <div key={day} className="text-center text-[10px] sm:text-xs font-medium text-dark-500 dark:text-dark-400 py-1 sm:py-2">
                 {day}
               </div>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {calendarDays.map((day, index) => (
               <motion.div
                 key={index}
                 whileHover={day ? { scale: 1.02 } : {}}
                 onClick={() => day && setSelectedDay(selectedDay?.day === day.day ? null : day)}
-                className={`relative min-h-[90px] p-2 rounded-xl border transition-all duration-200 ${
+                className={`relative min-h-[50px] sm:min-h-[80px] md:min-h-[90px] p-1 sm:p-2 rounded-lg sm:rounded-xl border transition-all duration-200 ${
                   day
                     ? `${selectedDay?.day === day.day 
                         ? 'border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-950/20' 
@@ -154,7 +154,7 @@ export default function CalendarPage() {
               >
                 {day && (
                   <>
-                    <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-medium mb-1 ${
+                    <div className={`flex items-center justify-center w-5 h-5 sm:w-7 sm:h-7 rounded-full text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 ${
                       isToday(day.day)
                         ? 'bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-sm shadow-primary-500/30'
                         : 'text-dark-600 dark:text-dark-400'
@@ -163,10 +163,10 @@ export default function CalendarPage() {
                     </div>
 
                     <div className="space-y-0.5">
-                      {day.tasks.slice(0, 3).map((task) => (
+                      {day.tasks.slice(0, 2).map((task) => (
                         <div
                           key={task._id}
-                          className={`text-[9px] px-1.5 py-0.5 rounded-md truncate font-medium ${
+                          className={`text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded truncate font-medium leading-tight ${
                             task.priority === 'urgent'
                               ? 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400'
                               : task.priority === 'high'
@@ -177,9 +177,9 @@ export default function CalendarPage() {
                           {task.title}
                         </div>
                       ))}
-                      {day.tasks.length > 3 && (
-                        <div className="text-[9px] text-dark-400 font-medium px-1.5">
-                          +{day.tasks.length - 3} more
+                      {day.tasks.length > 2 && (
+                        <div className="text-[9px] sm:text-[10px] text-dark-400 font-medium px-1">
+                          +{day.tasks.length - 2}
                         </div>
                       )}
                     </div>
@@ -209,14 +209,14 @@ export default function CalendarPage() {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex items-center gap-3 p-2.5 rounded-lg bg-dark-50 dark:bg-dark-800/30"
                     >
-                      <div className={`w-2 h-2 rounded-full ${
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         task.priority === 'urgent' ? 'bg-red-500' :
                         task.priority === 'high' ? 'bg-amber-500' : 'bg-blue-500'
                       }`} />
-                      <span className="text-sm font-medium text-dark-900 dark:text-dark-100 flex-1">
+                      <span className="text-sm font-medium text-dark-900 dark:text-dark-100 flex-1 min-w-0 truncate">
                         {task.title}
                       </span>
-                      <span className={`badge ${
+                      <span className={`badge flex-shrink-0 ${
                         task.priority === 'urgent' ? 'badge-danger' :
                         task.priority === 'high' ? 'badge-warning' : 'badge-info'
                       }`}>
@@ -235,9 +235,9 @@ export default function CalendarPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="card p-6"
+          className="card p-3 sm:p-6"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="section-title">
               <FiClock className="w-4 h-4 text-primary-500" />
               Upcoming
@@ -245,7 +245,7 @@ export default function CalendarPage() {
             <span className="text-xs text-dark-400">{upcomingTasks.length} tasks</span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[340px] sm:max-h-[520px] overflow-y-auto pr-0.5 custom-scroll">
             {upcomingTasks.length > 0 ? (
               upcomingTasks.map((task, idx) => {
                 const isOverdue = new Date(task.dueDate) < new Date();
@@ -255,27 +255,27 @@ export default function CalendarPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.03 }}
-                    className="group flex items-center gap-3 p-3 rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
+                    className="group flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
                   >
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
                       isOverdue ? 'bg-red-500' :
                       task.priority === 'urgent' ? 'bg-red-400' :
                       task.priority === 'high' ? 'bg-amber-400' : 'bg-blue-400'
                     }`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-dark-900 dark:text-dark-100 truncate">
+                      <p className="text-xs sm:text-sm font-medium text-dark-900 dark:text-dark-100 truncate">
                         {task.title}
                       </p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <FiClock className="w-2.5 h-2.5 text-dark-400" />
-                        <span className={`text-[10px] ${isOverdue ? 'text-red-500 font-medium' : 'text-dark-400'}`}>
+                        <span className={`text-[10px] sm:text-xs ${isOverdue ? 'text-red-500 font-medium' : 'text-dark-400'}`}>
                           {new Date(task.dueDate).toLocaleDateString('en-US', {
                             month: 'short', day: 'numeric'
                           })}
                         </span>
                       </div>
                     </div>
-                    <span className={`badge flex-shrink-0 ${
+                    <span className={`badge flex-shrink-0 text-[10px] sm:text-xs ${
                       task.priority === 'urgent' ? 'badge-danger' :
                       task.priority === 'high' ? 'badge-warning' : 'badge-info'
                     }`}>
@@ -285,9 +285,9 @@ export default function CalendarPage() {
                 );
               })
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-dark-400">
-                <FiCalendar className="w-8 h-8 mb-2 opacity-40" />
-                <p className="text-sm font-medium">No tasks scheduled</p>
+              <div className="flex flex-col items-center justify-center py-8 sm:py-10 text-dark-400">
+                <FiCalendar className="w-6 h-6 sm:w-8 sm:h-8 mb-2 opacity-40" />
+                <p className="text-xs sm:text-sm font-medium">No tasks scheduled</p>
               </div>
             )}
           </div>
