@@ -59,30 +59,31 @@ function TaskCard({ task, index, onDelete }) {
   return (
     <Draggable key={task._id} draggableId={task._id} index={index}>
       {(provided, snapshot) => (
-        <motion.div
+        <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          layout
-          initial={{ opacity: 0, y: 8, scale: 0.97 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] },
-          }}
-          exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
-          className={`
-            group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing
-            bg-white dark:bg-[#1a1c26]
-            border border-dark-100 dark:border-dark-800/60
-            transition-shadow duration-150
-            ${snapshot.isDragging
-              ? 'shadow-2xl shadow-primary-500/10 rotate-1 scale-[1.03] border-primary-300/50 dark:border-primary-700/50'
-              : 'shadow-sm hover:shadow-md hover:border-dark-200 dark:hover:border-dark-700/80'
-            }
-          `}
         >
+          <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              transition: { duration: 0.15, ease: 'easeOut' } 
+            }}
+            exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.1 } }}
+            className={`
+              group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing
+              bg-white dark:bg-[#1a1c26]
+              border border-dark-100 dark:border-dark-800/60
+              transition-shadow duration-150 will-change-transform
+              ${snapshot.isDragging
+                ? 'shadow-lg shadow-primary-500/10 rotate-[0.5deg] scale-[1.02] border-primary-300/50 dark:border-primary-700/50'
+                : 'shadow-sm hover:shadow-md hover:border-dark-200 dark:hover:border-dark-700/80'
+              }
+            `}
+          >
           {/* Priority bar */}
           <div className={`absolute top-0 left-3 right-3 h-0.5 rounded-full ${priorityConfig[task.priority]?.color}`} />
 
@@ -148,7 +149,8 @@ function TaskCard({ task, index, onDelete }) {
 
           {/* Task completion animation */}
           {task.status === 'completed' && snapshot.isDragging && <ConfettiEffect />}
-        </motion.div>
+          </motion.div>
+        </div>
       )}
     </Draggable>
   );

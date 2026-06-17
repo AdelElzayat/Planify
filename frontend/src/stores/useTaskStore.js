@@ -42,11 +42,11 @@ const useTaskStore = create((set, get) => ({
 
   updateTaskStatus: async (taskId, status, order) => {
     try {
-      const { data } = await api.patch(`/tasks/${taskId}/status`, { status, order });
+      await api.patch(`/tasks/${taskId}/status`, { status, order });
       set((state) => ({
-        tasks: state.tasks.map((t) => (t._id === taskId ? data : t)),
+        tasks: state.tasks.map((t) => (t._id === taskId ? { ...t, status, order } : t)),
       }));
-      return data;
+      return true;
     } catch (error) {
       throw error.response?.data?.message;
     }
