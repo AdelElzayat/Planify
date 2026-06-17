@@ -11,6 +11,13 @@ dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env.production' 
 
 connectDB();
 
+// Ensure upload directory exists
+const fs = require('fs');
+const uploadPath = path.join(__dirname, 'uploads/avatars');
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+}
+
 const app = express();
 const server = http.createServer(app);
 
