@@ -111,15 +111,10 @@ const uploadAvatar = async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
-    // Delete old avatar file if it exists (simple filename-based cleanup)
-    if (user.avatar) {
-      const oldPath = path.join(__dirname, '..', user.avatar);
-      if (fs.existsSync(oldPath)) {
-        try { fs.unlinkSync(oldPath); } catch {}
-      }
-    }
-
-    user.avatar = `/uploads/avatars/${req.file.filename}`;
+    // Convert file buffer to base64 data URL and store directly in MongoDB
+    const base64 = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype;
+    user.avatar = `data:${mimeType};base64,${base64}`;
     await user.save();
 
     res.json({ avatar: user.avatar, user });
