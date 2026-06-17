@@ -5,6 +5,7 @@ import { FiPlus, FiMoreHorizontal, FiCalendar, FiUser, FiClock, FiCheck, FiX, Fi
 import useTeamStore from '../stores/useTeamStore';
 import useTaskStore from '../stores/useTaskStore';
 import useAuthStore from '../stores/useAuthStore';
+import Avatar from '../components/common/Avatar';
 
 const columns = [
   { id: 'backlog', title: 'Backlog', color: 'from-dark-400 to-dark-500', dotColor: 'bg-dark-400' },
@@ -133,9 +134,7 @@ function TaskCard({ task, index, onDelete }) {
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-dark-400">
             {task.assignedTo && (
               <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-dark-50 dark:bg-dark-800/50">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-[8px] font-bold">
-                  {task.assignedTo?.name?.charAt(0) || '?'}
-                </div>
+                <Avatar user={task.assignedTo} size="sm" />
                 <span className="truncate max-w-[80px]">{task.assignedTo?.name || 'Unassigned'}</span>
               </div>
             )}

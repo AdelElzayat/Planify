@@ -13,7 +13,7 @@ const useAuthStore = create((set, get) => ({
   token: storedToken,
   loading: false,
   error: null,
-  initialized: true,
+  initialized: !!storedToken,
 
   register: async (userData) => {
     set({ loading: true, error: null });
@@ -70,6 +70,32 @@ const useAuthStore = create((set, get) => ({
       return data;
     } catch (error) {
       throw error.response?.data?.message || 'Update failed';
+    }
+  },
+
+  uploadAvatar: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const { data } = await api.post('/auth/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      localStorage.setItem('user', JSON.stringify(data.user));
+      set({ user: data.user });
+      return data;
+    } catch (error) {
+      throw error.response?.data?.message || 'Upload failed';
+    }
+  },
+
+  removeAvatar: async () => {
+    try {
+      const { data } = await api.delete('/auth/avatar');
+      localStorage.setItem('user', JSON.stringify(data.user));
+      set({ user: data.user });
+      return data;
+    } catch (error) {
+      throw error.response?.data?.message || 'Failed to remove avatar';
     }
   },
 

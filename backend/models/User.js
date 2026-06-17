@@ -38,6 +38,27 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Bio cannot exceed 500 characters']
+  },
+  github: {
+    type: String,
+    trim: true
+  },
+  linkedin: {
+    type: String,
+    trim: true
+  },
+  website: {
+    type: String,
+    trim: true
+  },
+  location: {
+    type: String,
+    trim: true
+  },
   avatar: {
     type: String,
     default: ''

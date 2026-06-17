@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiCheckCircle, FiUsers, FiClock, FiGitCommit, FiTrendingUp, FiCalendar, FiTarget, FiAward } from 'react-icons/fi';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import StatCard from '../components/dashboard/StatCard';
+import Avatar from '../components/common/Avatar';
 import useTeamStore from '../stores/useTeamStore';
 import useTaskStore from '../stores/useTaskStore';
 import useAuthStore from '../stores/useAuthStore';
@@ -137,12 +138,8 @@ export default function Dashboard() {
         <div className="flex items-center gap-2">
           <div className="flex -space-x-2">
             {team?.members?.slice(0, 4).map((member, idx) => (
-              <div
-                key={member.user?._id}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-xs font-bold border-2 border-white dark:border-surface-dark"
-                title={member.user?.name}
-              >
-                {member.user?.name?.charAt(0)?.toUpperCase()}
+              <div key={member.user?._id} className="border-2 border-white dark:border-surface-dark rounded-full" title={member.user?.name}>
+                <Avatar user={member.user} size="sm" />
               </div>
             ))}
             {(team?.members?.length || 0) > 4 && (
@@ -349,9 +346,7 @@ export default function Dashboard() {
               className="group flex items-center gap-3 p-3 rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors duration-150"
             >
               <div className="relative">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-sm font-bold">
-                  {member.user?.name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
+                <Avatar user={member.user} size="lg" />
                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-surface-dark" />
               </div>
               <div className="flex-1 min-w-0">

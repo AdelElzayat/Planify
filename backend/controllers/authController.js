@@ -81,13 +81,18 @@ const getMe = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, universityId, department, skills } = req.body;
+    const { name, universityId, department, skills, bio, github, linkedin, website, location } = req.body;
     const user = await User.findById(req.user._id);
 
-    if (name) user.name = name;
-    if (universityId) user.universityId = universityId;
-    if (department) user.department = department;
-    if (skills) user.skills = skills;
+    if (name !== undefined) user.name = name;
+    if (universityId !== undefined) user.universityId = universityId;
+    if (department !== undefined) user.department = department;
+    if (skills !== undefined) user.skills = skills;
+    if (bio !== undefined) user.bio = bio;
+    if (github !== undefined) user.github = github;
+    if (linkedin !== undefined) user.linkedin = linkedin;
+    if (website !== undefined) user.website = website;
+    if (location !== undefined) user.location = location;
 
     await user.save();
     res.json(user);
@@ -96,4 +101,33 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile };
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.user._id);
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    user.avatar = avatarUrl;
+    await user.save();
+
+    res.json({ avatar: avatarUrl, user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const removeAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    user.avatar = '';
+    await user.save();
+
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { register, login, getMe, updateProfile, uploadAvatar, removeAvatar };

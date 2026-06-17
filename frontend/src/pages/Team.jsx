@@ -4,6 +4,7 @@ import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiL
 import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
 import api from '../services/api';
+import Avatar from '../components/common/Avatar';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -179,9 +180,7 @@ export default function Team() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-sm font-bold">
-                        {member.user?.name?.charAt(0)?.toUpperCase()}
-                      </div>
+                      <Avatar user={member.user} size="lg" />
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-surface-dark" />
                     </div>
                     <div>
@@ -222,9 +221,7 @@ export default function Team() {
                 Supervisor
               </h3>
               <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-emerald-500/5 to-green-500/5 border border-emerald-200/30 dark:border-emerald-800/30">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-emerald-500/20">
-                  {team.supervisor?.name?.charAt(0)?.toUpperCase()}
-                </div>
+                <Avatar user={team.supervisor} size="xl" className="shadow-lg shadow-emerald-500/20" />
                 <div>
                   <p className="text-base font-medium text-dark-900 dark:text-dark-100">{team.supervisor?.name}</p>
                   <p className="text-sm text-dark-500">{team.supervisor?.email}</p>

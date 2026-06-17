@@ -5,6 +5,7 @@ import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
 import { getSocket, connectSocket } from '../services/socket';
 import api from '../services/api';
+import Avatar from '../components/common/Avatar';
 
 function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
   return (
@@ -15,10 +16,8 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
       className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : ''}`}
     >
       {/* Avatar */}
-      <div className={`flex-shrink-0 ${isOwn ? 'ml-0' : ''} mt-1`}>
-        <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${isOwn ? 'from-primary-400 to-accent-500' : 'from-dark-300 to-dark-400'} flex items-center justify-center text-white text-xs font-bold`}>
-          {message.sender?.name?.charAt(0)?.toUpperCase() || '?'}
-        </div>
+      <div className={`flex-shrink-0 mt-1`}>
+        <Avatar user={message.sender} size="md" />
       </div>
 
       {/* Message Content */}
@@ -290,12 +289,8 @@ export default function Chat() {
         </div>
         <div className="flex -space-x-2">
           {team?.members?.slice(0, 5).map((member, idx) => (
-            <div
-              key={member.user?._id}
-              className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-[10px] font-bold border-2 border-white dark:border-surface-dark"
-              title={member.user?.name}
-            >
-              {member.user?.name?.charAt(0)?.toUpperCase()}
+            <div key={member.user?._id} className="border-2 border-white dark:border-surface-dark rounded-full" title={member.user?.name}>
+              <Avatar user={member.user} size="sm" />
             </div>
           ))}
         </div>

@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import useAuthStore from '../../stores/useAuthStore';
+import getAvatarUrl from '../../utils/getAvatarUrl';
 import Logo from './Logo';
 import {
   FiGrid, FiMessageSquare, FiCheckSquare, FiFolder,
@@ -157,13 +158,25 @@ export default function Sidebar({ open, onClose }) {
           >
             <div className="relative z-10 flex items-center gap-3">
               {collapsed ? (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                  {user?.avatar ? (
+                    <img src={getAvatarUrl(user.avatar)} alt={user?.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center">
+                      {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+                    {user?.avatar ? (
+                      <img src={getAvatarUrl(user.avatar)} alt={user?.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center">
+                        {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-dark-900 dark:text-dark-100 truncate">
