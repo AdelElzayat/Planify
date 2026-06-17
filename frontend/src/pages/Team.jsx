@@ -7,12 +7,12 @@ import api from '../services/api';
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
 export default function Team() {
@@ -84,22 +84,18 @@ export default function Team() {
               Collaborate with your classmates on your graduation project
             </p>
             <div className="flex gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={() => setShowCreate(true)}
                 className="btn-primary btn-lg"
               >
                 <FiPlus className="w-4 h-4" /> Create Team
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              </button>
+              <button
                 onClick={() => setShowJoin(true)}
                 className="btn-secondary btn-lg"
               >
                 <FiLogIn className="w-4 h-4" /> Join Team
-              </motion.button>
+              </button>
             </div>
           </motion.div>
         </motion.div>
@@ -119,7 +115,7 @@ export default function Team() {
                   <div>
                     <h2 className="text-xl font-bold text-dark-900 dark:text-dark-100">{team?.name}</h2>
                     <p className="text-dark-500 dark:text-dark-400 mt-1">{team?.description}</p>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
                       <span className={`badge ${team?.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
                         {team?.status}
                       </span>
@@ -141,9 +137,7 @@ export default function Team() {
                   <code className="flex-1 px-4 py-2.5 rounded-lg bg-white dark:bg-dark-900 border border-dark-200 dark:border-dark-700 text-lg font-mono text-center tracking-widest text-primary-600 dark:text-primary-400">
                     {team?.inviteCode}
                   </code>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     onClick={copyInviteCode}
                     className={`btn-sm ${copied ? 'btn-soft' : 'btn-secondary'}`}
                   >
@@ -154,7 +148,7 @@ export default function Team() {
                     ) : (
                       <FiCopy className="w-3.5 h-3.5" />
                     )}
-                  </motion.button>
+                  </button>
                 </div>
               </div>
             )}
@@ -178,10 +172,10 @@ export default function Team() {
               {team?.members?.map((member, idx) => (
                 <motion.div
                   key={member.user?._id}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="group flex items-center justify-between p-3 rounded-xl hover:bg-dark-50 dark:hover:bg-dark-800/30 transition-colors"
+                  transition={{ delay: idx * 0.03, duration: 0.2 }}
+                  className="group flex items-center justify-between p-3 rounded-xl hover:bg-dark-50 dark:hover:bg-dark-800/30 transition-colors duration-150"
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -207,14 +201,12 @@ export default function Team() {
                       {member.role}
                     </span>
                     {user?.teamRole === 'leader' && member.role !== 'leader' && (
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                      <button
                         onClick={() => handleRemoveMember(member.user?._id)}
-                        className="p-2 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                        className="p-2 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-500 transition-colors duration-150 opacity-0 group-hover:opacity-100"
                       >
                         <FiUserMinus className="w-4 h-4" />
-                      </motion.button>
+                      </button>
                     )}
                   </div>
                 </motion.div>
@@ -243,27 +235,28 @@ export default function Team() {
         </>
       )}
 
-      {/* Modals - Always rendered */}
+      {/* Modals */}
       <AnimatePresence>
         {showCreate && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowCreate(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.93, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="card p-6 w-full max-w-md mx-4 shadow-2xl"
+              exit={{ scale: 0.93, opacity: 0, y: 12 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="card p-6 w-full max-w-md shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-dark-900 dark:text-dark-100">Create New Team</h3>
-                <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors">
+                <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150">
                   <FiX className="w-4 h-4" />
                 </button>
               </div>
@@ -297,20 +290,21 @@ export default function Team() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowJoin(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.93, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="card p-6 w-full max-w-md mx-4 shadow-2xl"
+              exit={{ scale: 0.93, opacity: 0, y: 12 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="card p-6 w-full max-w-md shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-dark-900 dark:text-dark-100">Join Team</h3>
-                <button onClick={() => setShowJoin(false)} className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors">
+                <button onClick={() => setShowJoin(false)} className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150">
                   <FiX className="w-4 h-4" />
                 </button>
               </div>

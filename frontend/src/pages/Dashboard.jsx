@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FiCheckCircle, FiUsers, FiClock, FiGitCommit, FiTrendingUp, FiCalendar, FiTarget, FiAward } from 'react-icons/fi';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
@@ -14,13 +14,13 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 },
+    transition: { staggerChildren: 0.04 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
 function SkeletonLoader() {
@@ -66,35 +66,43 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  const taskStats = {
+  const taskStats = useMemo(() => ({
     total: tasks.length,
     completed: tasks.filter((t) => t.status === 'completed').length,
     inProgress: tasks.filter((t) => t.status === 'in_progress').length,
     todo: tasks.filter((t) => t.status === 'todo').length,
-  };
+  }), [tasks]);
 
-  const completedPercentage = taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0;
+  const completedPercentage = useMemo(() => 
+    taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0,
+  [taskStats.total, taskStats.completed]);
 
-  const pieData = [
+  const pieData = useMemo(() => [
     { name: 'Completed', value: taskStats.completed },
     { name: 'In Progress', value: taskStats.inProgress },
     { name: 'To Do', value: taskStats.todo },
     { name: 'Backlog', value: tasks.filter((t) => t.status === 'backlog').length },
-  ].filter((d) => d.value > 0);
+  ].filter((d) => d.value > 0), [taskStats, tasks]);
 
-  const completedTasks = tasks.filter(t => t.status === 'completed').length;
-  const upcomingDeadlines = tasks
-    .filter(t => t.dueDate && t.status !== 'completed')
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-    .slice(0, 5);
+  const completedTasks = useMemo(() => 
+    tasks.filter(t => t.status === 'completed').length,
+  [tasks]);
+
+  const upcomingDeadlines = useMemo(() => 
+    tasks
+      .filter(t => t.dueDate && t.status !== 'completed')
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5),
+  [tasks]);
 
   if (loading) return <SkeletonLoader />;
 
   if (!team) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
         className="flex flex-col items-center justify-center min-h-[60vh] text-center"
       >
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center mb-6 shadow-lg shadow-primary-500/20">
@@ -147,7 +155,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* Stats Grid */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={FiTrendingUp}
           label="Team Progress"
@@ -201,8 +209,8 @@ export default function Dashboard() {
                     outerRadius={100}
                     paddingAngle={4}
                     dataKey="value"
-                    animationBegin={300}
-                    animationDuration={1500}
+                    animationBegin={200}
+                    animationDuration={800}
                     animationEasing="ease-out"
                   >
                     {pieData.map((entry, index) => (
@@ -248,7 +256,7 @@ export default function Dashboard() {
                 className="progress-bar-fill"
                 initial={{ width: 0 }}
                 animate={{ width: `${completedPercentage}%` }}
-                transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
+                transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
               />
             </div>
           </div>
@@ -273,10 +281,10 @@ export default function Dashboard() {
                 return (
                   <motion.div
                     key={task._id}
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="group flex items-center justify-between p-3 rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
+                    transition={{ delay: idx * 0.03, duration: 0.2 }}
+                    className="group flex items-center justify-between p-3 rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors duration-150"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
@@ -335,10 +343,10 @@ export default function Dashboard() {
           {team?.members?.map((member, idx) => (
             <motion.div
               key={member.user?._id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="group flex items-center gap-3 p-3 rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-all"
+              transition={{ delay: idx * 0.03, duration: 0.2 }}
+              className="group flex items-center gap-3 p-3 rounded-xl bg-dark-50 dark:bg-dark-800/30 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors duration-150"
             >
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center text-white text-sm font-bold">

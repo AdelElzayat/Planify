@@ -22,7 +22,7 @@ const priorityConfig = {
 };
 
 function ConfettiEffect() {
-  const particles = Array.from({ length: 12 });
+  const particles = Array.from({ length: 8 });
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {particles.map((_, i) => (
@@ -31,20 +31,19 @@ function ConfettiEffect() {
           className="absolute w-1.5 h-1.5 rounded-full"
           style={{
             background: ['#7c3aed', '#22d3ee', '#10b981', '#f59e0b', '#ef4444'][i % 5],
-            left: `${20 + Math.random() * 60}%`,
-            top: `${40 + Math.random() * 30}%`,
+            left: `${25 + Math.random() * 50}%`,
+            top: `${45 + Math.random() * 20}%`,
           }}
           initial={{ scale: 0, opacity: 1 }}
           animate={{
             scale: [0, 1.5, 0],
             opacity: [1, 1, 0],
-            y: [-10, -40 - Math.random() * 40],
-            x: [0, (Math.random() - 0.5) * 60],
-            rotate: [0, 360 + Math.random() * 360],
+            y: [-10, -30 - Math.random() * 30],
+            x: [0, (Math.random() - 0.5) * 40],
           }}
           transition={{
-            duration: 0.8 + Math.random() * 0.4,
-            delay: Math.random() * 0.2,
+            duration: 0.5 + Math.random() * 0.3,
+            delay: Math.random() * 0.1,
             ease: 'easeOut',
           }}
         />
@@ -64,21 +63,21 @@ function TaskCard({ task, index, onDelete }) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           layout
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+          initial={{ opacity: 0, y: 8, scale: 0.97 }}
           animate={{
             opacity: 1,
             y: 0,
             scale: 1,
-            transition: { type: 'spring', stiffness: 400, damping: 25 },
+            transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] },
           }}
-          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.12 } }}
           className={`
             group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing
             bg-white dark:bg-[#1a1c26]
             border border-dark-100 dark:border-dark-800/60
-            transition-all duration-200
+            transition-shadow duration-150
             ${snapshot.isDragging
-              ? 'shadow-2xl shadow-primary-500/10 rotate-2 scale-105 border-primary-300/50 dark:border-primary-700/50'
+              ? 'shadow-2xl shadow-primary-500/10 rotate-1 scale-[1.03] border-primary-300/50 dark:border-primary-700/50'
               : 'shadow-sm hover:shadow-md hover:border-dark-200 dark:hover:border-dark-700/80'
             }
           `}
@@ -96,21 +95,22 @@ function TaskCard({ task, index, onDelete }) {
             <div className="relative">
               <button
                 onClick={() => setShowActions(!showActions)}
-                className="p-1 rounded-lg text-dark-300 hover:text-dark-600 dark:hover:text-dark-200 hover:bg-dark-100 dark:hover:bg-dark-800/50 opacity-0 group-hover:opacity-100 transition-all"
+                className="p-1 rounded-lg text-dark-300 hover:text-dark-600 dark:hover:text-dark-200 hover:bg-dark-100 dark:hover:bg-dark-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
               >
                 <FiMoreHorizontal className="w-4 h-4" />
               </button>
               <AnimatePresence>
                 {showActions && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
+                    initial={{ opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.1 }}
                     className="absolute right-0 top-full mt-1 z-20 w-36 card p-1 shadow-xl border-dark-200 dark:border-dark-700"
                   >
                     <button
                       onClick={() => { onDelete(task._id); setShowActions(false); }}
-                      className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                      className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors duration-150"
                     >
                       <FiTrash2 className="w-3.5 h-3.5" /> Delete task
                     </button>
@@ -162,8 +162,9 @@ function ColumnHeader({ column, count }) {
       <h3 className="font-semibold text-sm text-dark-900 dark:text-dark-100">{column.title}</h3>
       <motion.span
         key={count}
-        initial={{ scale: 0.5 }}
+        initial={{ scale: 0.6 }}
         animate={{ scale: 1 }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
         className="ml-auto text-xs px-2 py-0.5 rounded-full bg-dark-100 dark:bg-dark-800 text-dark-500 dark:text-dark-400 font-medium"
       >
         {count}
@@ -230,8 +231,9 @@ export default function Tasks() {
     <div className="space-y-6">
       {/* Header */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
       >
         <div>
@@ -245,16 +247,17 @@ export default function Tasks() {
 
       {/* Kanban Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 no-scrollbar">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 overflow-x-auto pb-4 no-scrollbar">
           {columns.map((column) => {
             const columnTasks = tasks.filter((t) => t.status === column.id);
 
             return (
               <motion.div
                 key={column.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="min-w-[260px] flex flex-col"
+                transition={{ duration: 0.2, delay: 0.05 }}
+                className="min-w-[240px] flex flex-col"
               >
                 <ColumnHeader column={column} count={columnTasks.length} />
 
@@ -265,8 +268,8 @@ export default function Tasks() {
                       {...provided.droppableProps}
                       layout
                       className={`
-                        flex-1 space-y-2.5 min-h-[200px] p-2 rounded-xl
-                        transition-all duration-300 border-2 border-dashed
+                        flex-1 space-y-2.5 min-h-[150px] p-2 rounded-xl
+                        transition-colors duration-200 border-2 border-dashed
                         ${snapshot.isDraggingOver
                           ? 'border-primary-300/40 dark:border-primary-700/40 bg-primary-50/30 dark:bg-primary-950/20'
                           : 'border-transparent bg-dark-50/30 dark:bg-dark-900/20'
@@ -300,14 +303,15 @@ export default function Tasks() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={() => setShowCreate(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.93, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              exit={{ scale: 0.93, opacity: 0, y: 12 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="card p-6 w-full max-w-lg mx-4 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
@@ -315,7 +319,7 @@ export default function Tasks() {
                 <h3 className="text-lg font-semibold text-dark-900 dark:text-dark-100">Create New Task</h3>
                 <button
                   onClick={() => setShowCreate(false)}
-                  className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
+                  className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150"
                 >
                   <FiX className="w-4 h-4" />
                 </button>

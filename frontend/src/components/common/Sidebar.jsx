@@ -38,7 +38,6 @@ export default function Sidebar({ open, onClose }) {
   };
 
   const sidebarWidth = collapsed ? 'w-20' : 'w-64';
-  const transitionWidth = 'transition-all duration-300 ease-in-out';
 
   return (
     <>
@@ -49,6 +48,7 @@ export default function Sidebar({ open, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={onClose}
           />
@@ -59,12 +59,12 @@ export default function Sidebar({ open, onClose }) {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          ${sidebarWidth} ${transitionWidth}
+          ${sidebarWidth}
           bg-surface dark:bg-surface-dark
           border-r border-dark-100 dark:border-dark-800/60
           flex flex-col
           ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          transition-transform duration-300 ease-in-out
+          transition-transform duration-200 ease-out
         `}
       >
         {/* Logo Section */}
@@ -76,7 +76,7 @@ export default function Sidebar({ open, onClose }) {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800/50 hover:text-dark-600 dark:hover:text-dark-200 transition-all"
+            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800/50 hover:text-dark-600 dark:hover:text-dark-200 transition-colors duration-150"
           >
             {collapsed ? <FiChevronRight className="w-4 h-4" /> : <FiChevronLeft className="w-4 h-4" />}
           </button>
@@ -84,7 +84,7 @@ export default function Sidebar({ open, onClose }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto no-scrollbar px-3 py-4 space-y-1">
-          {navItems.map((item, index) => {
+          {navItems.map((item) => {
             const active = isActive(item.to);
             return (
               <NavLink
@@ -95,7 +95,7 @@ export default function Sidebar({ open, onClose }) {
                   group relative flex items-center ${collapsed ? 'justify-center' : 'gap-3'}
                   ${collapsed ? 'w-12 h-12' : 'px-4 py-2.5'}
                   rounded-xl text-sm font-medium
-                  transition-all duration-200
+                  transition-colors duration-150
                   ${active
                     ? 'bg-gradient-to-r from-primary-500/10 to-primary-600/5 text-primary-700 dark:text-primary-300 shadow-sm shadow-primary-500/5'
                     : 'text-dark-600 dark:text-dark-400 hover:bg-dark-50 dark:hover:bg-dark-800/30 hover:text-dark-900 dark:hover:text-dark-100'
@@ -106,14 +106,14 @@ export default function Sidebar({ open, onClose }) {
                   <motion.div
                     layoutId="sidebar-active"
                     className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-600/5 dark:from-primary-500/5 dark:to-primary-600/3"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
                 <div className="relative z-10 flex items-center gap-3">
                   <div className={`
                     flex items-center justify-center w-5 h-5
                     ${active ? 'text-primary-600 dark:text-primary-400' : 'text-dark-400 group-hover:text-dark-600 dark:group-hover:text-dark-300'}
-                    transition-colors duration-200
+                    transition-colors duration-150
                   `}>
                     <item.icon className="w-[18px] h-[18px]" />
                   </div>
@@ -124,12 +124,12 @@ export default function Sidebar({ open, onClose }) {
                     <motion.div
                       layoutId="active-indicator"
                       className="absolute -left-4 w-1 h-5 rounded-full bg-gradient-to-b from-primary-500 to-accent-500"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                     />
                   )}
                 </div>
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-dark-900 dark:bg-dark-700 text-white text-xs whitespace-nowrap shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50">
+                  <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-dark-900 dark:bg-dark-700 text-white text-xs whitespace-nowrap shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 pointer-events-none z-50">
                     {item.label}
                   </div>
                 )}
@@ -148,7 +148,7 @@ export default function Sidebar({ open, onClose }) {
               group relative flex items-center ${collapsed ? 'justify-center' : 'gap-3'}
               ${collapsed ? 'w-12 h-12 mx-auto' : 'px-4 py-2.5'}
               rounded-xl text-sm font-medium
-              transition-all duration-200
+              transition-colors duration-150
               ${isActive('/profile')
                 ? 'bg-gradient-to-r from-primary-500/10 to-primary-600/5 text-primary-700 dark:text-primary-300'
                 : 'text-dark-600 dark:text-dark-400 hover:bg-dark-50 dark:hover:bg-dark-800/30 hover:text-dark-900 dark:hover:text-dark-100'
@@ -175,7 +175,7 @@ export default function Sidebar({ open, onClose }) {
               )}
             </div>
             {collapsed && (
-              <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-dark-900 dark:bg-dark-700 text-white text-xs whitespace-nowrap shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none z-50">
+              <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-dark-900 dark:bg-dark-700 text-white text-xs whitespace-nowrap shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 pointer-events-none z-50">
                 {user?.name || 'User'}
               </div>
             )}
@@ -191,7 +191,7 @@ export default function Sidebar({ open, onClose }) {
                 rounded-xl text-sm
                 text-dark-500 dark:text-dark-400
                 hover:bg-dark-50 dark:hover:bg-dark-800/30 hover:text-dark-700 dark:hover:text-dark-200
-                transition-all duration-200
+                transition-colors duration-150
               `}
               title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
@@ -206,7 +206,7 @@ export default function Sidebar({ open, onClose }) {
                 rounded-xl text-sm
                 text-red-500 dark:text-red-400
                 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-300
-                transition-all duration-200
+                transition-colors duration-150
               `}
               title="Logout"
             >

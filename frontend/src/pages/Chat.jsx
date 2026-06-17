@@ -9,9 +9,9 @@ import api from '../services/api';
 function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      transition={{ duration: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
       className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : ''}`}
     >
       {/* Avatar */}
@@ -65,17 +65,18 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
         <AnimatePresence>
           {message.reactions?.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -5 }}
+              initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.1 }}
               className="flex gap-1 mt-1"
             >
               {message.reactions.map((reaction) => (
                 <motion.button
                   key={reaction.emoji}
-                  whileHover={{ scale: 1.15 }}
+                  whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => onReaction(message._id, reaction.emoji)}
-                  className={`px-2 py-0.5 rounded-full text-xs border transition-all ${
+                  className={`px-2 py-0.5 rounded-full text-xs border transition-colors duration-150 ${
                     reaction.users?.includes('current')
                       ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-800 shadow-sm'
                       : 'bg-dark-50 dark:bg-dark-800/50 border-dark-100 dark:border-dark-700/50 hover:bg-dark-100 dark:hover:bg-dark-700'
@@ -89,14 +90,14 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
         </AnimatePresence>
 
         {/* Quick reactions */}
-        <div className={`flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity ${isOwn ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ${isOwn ? 'flex-row-reverse' : ''}`}>
           {['👍', '❤️', '😂', '😮'].map((emoji) => (
             <motion.button
               key={emoji}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => onReaction(message._id, emoji)}
-              className="text-sm opacity-60 hover:opacity-100 transition-opacity"
+              className="text-sm opacity-60 hover:opacity-100 transition-opacity duration-100"
             >
               {emoji}
             </motion.button>
@@ -106,16 +107,16 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
 
       {/* Actions (own messages) */}
       {isOwn && (
-        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
           <button
             onClick={() => onEdit(message._id, message.content)}
-            className="p-1 rounded text-dark-400 hover:text-primary-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-all"
+            className="p-1 rounded text-dark-400 hover:text-primary-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150"
           >
             <FiEdit2 className="w-3 h-3" />
           </button>
           <button
             onClick={() => onDelete(message._id)}
-            className="p-1 rounded text-dark-400 hover:text-red-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-all"
+            className="p-1 rounded text-dark-400 hover:text-red-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150"
           >
             <FiTrash2 className="w-3 h-3" />
           </button>
@@ -128,9 +129,10 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
 function TypingIndicator({ users }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.12 }}
       className="flex items-center gap-2 px-3 py-2"
     >
       <div className="flex gap-1">
@@ -140,9 +142,9 @@ function TypingIndicator({ users }) {
             className="w-1.5 h-1.5 rounded-full bg-dark-400"
             animate={{ y: [0, -3, 0] }}
             transition={{
-              duration: 0.8,
+              duration: 0.6,
               repeat: Infinity,
-              delay: i * 0.15,
+              delay: i * 0.12,
               ease: 'easeInOut',
             }}
           />
@@ -300,7 +302,7 @@ export default function Chat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto mb-4 space-y-3 px-1">
+      <div className="flex-1 overflow-y-auto mb-4 space-y-3 px-1 smooth-scroll">
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
@@ -343,7 +345,7 @@ export default function Chat() {
       {/* Message Input */}
       <form onSubmit={handleSend} className="card p-3">
         <div className="flex items-center gap-3">
-          <button type="button" className="p-2 rounded-lg text-dark-400 hover:text-dark-600 hover:bg-dark-100 dark:hover:bg-dark-800 transition-all">
+          <button type="button" className="p-2 rounded-lg text-dark-400 hover:text-dark-600 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150">
             <FiPaperclip className="w-5 h-5" />
           </button>
           <div className="flex-1 relative">
@@ -370,7 +372,7 @@ export default function Chat() {
             disabled={!newMessage.trim()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-2.5 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary-500/20"
+            className="p-2.5 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 shadow-lg shadow-primary-500/20"
           >
             <FiSend className="w-4 h-4" />
           </motion.button>

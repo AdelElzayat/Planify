@@ -30,7 +30,7 @@ export default function TopBar({ onMenuClick }) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setSearchOpen(true);
-        setTimeout(() => searchRef.current?.focus(), 100);
+        setTimeout(() => searchRef.current?.focus(), 50);
       }
       if (e.key === 'Escape') {
         setSearchOpen(false);
@@ -45,7 +45,7 @@ export default function TopBar({ onMenuClick }) {
     <header className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3 bg-white/70 dark:bg-surface-dark/70 backdrop-blur-xl border-b border-dark-100 dark:border-dark-800/60">
       <button
         onClick={onMenuClick}
-        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl text-dark-500 hover:bg-dark-100 dark:hover:bg-dark-800/50 hover:text-dark-700 dark:hover:text-dark-200 transition-all"
+        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl text-dark-500 hover:bg-dark-100 dark:hover:bg-dark-800/50 hover:text-dark-700 dark:hover:text-dark-200 transition-colors duration-150"
       >
         <FiMenu className="w-[18px] h-[18px]" />
       </button>
@@ -53,8 +53,9 @@ export default function TopBar({ onMenuClick }) {
       <div className="flex-1 min-w-0">
         <motion.h2
           key={location.pathname}
-          initial={{ opacity: 0, y: -5 }}
+          initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15 }}
           className="text-lg font-semibold text-dark-900 dark:text-dark-100 truncate"
         >
           {currentPage.title}
@@ -68,9 +69,9 @@ export default function TopBar({ onMenuClick }) {
         <button
           onClick={() => {
             setSearchOpen(true);
-            setTimeout(() => searchRef.current?.focus(), 100);
+            setTimeout(() => searchRef.current?.focus(), 50);
           }}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-50 dark:bg-dark-800/50 border border-dark-100 dark:border-dark-700/50 text-sm text-dark-400 hover:text-dark-600 dark:hover:text-dark-300 hover:border-dark-200 dark:hover:border-dark-600 transition-all w-64"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-50 dark:bg-dark-800/50 border border-dark-100 dark:border-dark-700/50 text-sm text-dark-400 hover:text-dark-600 dark:hover:text-dark-300 hover:border-dark-200 dark:hover:border-dark-600 transition-colors duration-150 w-64"
         >
           <FiSearch className="w-4 h-4" />
           <span>Search anything...</span>
@@ -86,6 +87,7 @@ export default function TopBar({ onMenuClick }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.1 }}
                 className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
                 onClick={() => {
                   setSearchOpen(false);
@@ -93,10 +95,10 @@ export default function TopBar({ onMenuClick }) {
                 }}
               />
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                initial={{ opacity: 0, scale: 0.96, y: -8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{ duration: 0.15 }}
+                exit={{ opacity: 0, scale: 0.96, y: -8 }}
+                transition={{ duration: 0.12 }}
                 className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg"
               >
                 <div className="card p-2 shadow-2xl shadow-black/10 dark:shadow-black/30 border-dark-200 dark:border-dark-700">

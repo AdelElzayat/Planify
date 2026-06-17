@@ -11,8 +11,8 @@ function AnimatedCounter({ value, suffix = '' }) {
     if (!isInView) return;
 
     let start = 0;
-    const duration = 1500;
-    const steps = 60;
+    const duration = 800;
+    const steps = 30;
     const increment = numericValue / steps;
     let current = 0;
 
@@ -39,18 +39,18 @@ function AnimatedCounter({ value, suffix = '' }) {
 export default function StatCard({ icon: Icon, label, value, color, subtitle, trend }) {
   return (
     <motion.div
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      whileHover={{ y: -3, transition: { duration: 0.15 } }}
       className="group relative card p-5 overflow-hidden cursor-default"
     >
       {/* Background gradient on hover */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+      <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
 
       {/* Mesh pattern overlay */}
-      <div className="absolute inset-0 bg-mesh-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-mesh-pattern opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-3">
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg shadow-black/5 group-hover:scale-110 transition-transform duration-300`}>
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg shadow-black/5 group-hover:scale-110 transition-transform duration-200`}>
             <Icon className="w-5 h-5 text-white" />
           </div>
           {trend && (
@@ -77,7 +77,7 @@ export default function StatCard({ icon: Icon, label, value, color, subtitle, tr
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(parseInt(value) || 0, 100)}%` }}
-            transition={{ duration: 1.5, ease: 'easeOut', delay: 0.5 }}
+            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
             className={`h-full rounded-full bg-gradient-to-r ${color}`}
           />
         </div>
