@@ -1,8 +1,7 @@
 /**
  * Resolve avatar URL from stored path.
- * The avatar path is stored as /uploads/avatars/filename.jpg
- * The API URL is http://localhost:5000/api
- * So we need to resolve against the base server URL (without /api)
+ * The avatar path may be a full URL (e.g. https://.../uploads/avatars/filename.jpg)
+ * or a relative path (/uploads/avatars/filename.jpg).
  */
 export default function getAvatarUrl(avatarPath) {
   if (!avatarPath) return null;
@@ -17,12 +16,14 @@ export default function getAvatarUrl(avatarPath) {
     return avatarPath;
   }
 
-  // Resolve relative path against the server base URL (strip /api from API_URL)
-  const apiUrl = import.meta.env.VITE_API_URL || '';
-  const baseUrl = apiUrl.replace(/\/api\/?$/, '');
-  
-  // Ensure the path starts correctly
+  // Resolve relative path against VITE_UPLOADS_URL (server base URL)
+  const uploadsBase = import.meta.env.VITE_UPLOADS_URL || '';
   const cleanPath = avatarPath.startsWith('/') ? avatarPath : `/${avatarPath}`;
-  
-  return `${baseUrl}${cleanPath}`;
+
+  if (uploadsBase) {
+    return `${uploadsBase}${cleanPath}`;
+  }
+
+  // Fallback: just return the path (may work in dev via Vite proxy)
+  return cleanPath;
 }

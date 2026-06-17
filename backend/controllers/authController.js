@@ -108,7 +108,10 @@ const uploadAvatar = async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    // Store full URL so frontend doesn't need to resolve relative paths
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const avatarUrl = `${protocol}://${host}/uploads/avatars/${req.file.filename}`;
     user.avatar = avatarUrl;
     await user.save();
 
