@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 
 const generateToken = (id) => {
@@ -107,23 +109,20 @@ const uploadAvatar = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const cloudinary = require('cloudinary').v2;
-
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        { folder: 'gradhub/avatars', transformation: [{ width: 200, height: 200, crop: 'fill', gravity: 'face' }] },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      ).end(req.file.buffer);
-    });
-
     const user = await User.findById(req.user._id);
-    user.avatar = result.secure_url;
+
+    // Delete old avatar file if it exists (simple filename-based cleanup)
+    if (user.avatar) {
+      const oldPath = path.join(__dirname, '..', user.avatar);
+      if (fs.existsSync(oldPath)) {
+        try { fs.unlinkSync(oldPath); } catch {}
+      }
+    }
+
+    user.avatar = `/uploads/avatars/${req.file.filename}`;
     await user.save();
 
-    res.json({ avatar: result.secure_url, user });
+    res.json({ avatar: user.avatar, user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -132,6 +131,14 @@ const uploadAvatar = async (req, res) => {
 const removeAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+
+    if (user.avatar) {
+      const oldPath = path.join(__dirname, '..', user.avatar);
+      if (fs.existsSync(oldPath)) {
+        try { fs.unlinkSync(oldPath); } catch {}
+      }
+    }
+
     user.avatar = '';
     await user.save();
 
