@@ -107,15 +107,23 @@ const uploadAvatar = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const cloudinary = require('cloudinary').v2;
+
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: 'gradhub/avatars', transformation: [{ width: 200, height: 200, crop: 'fill', gravity: 'face' }] },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(req.file.buffer);
+    });
+
     const user = await User.findById(req.user._id);
-    // Store full URL so frontend doesn't need to resolve relative paths
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const avatarUrl = `${protocol}://${host}/uploads/avatars/${req.file.filename}`;
-    user.avatar = avatarUrl;
+    user.avatar = result.secure_url;
     await user.save();
 
-    res.json({ avatar: avatarUrl, user });
+    res.json({ avatar: result.secure_url, user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
