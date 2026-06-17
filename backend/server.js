@@ -7,7 +7,7 @@ const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const setupSocket = require('./sockets');
 
-dotenv.config();
+dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.local' });
 
 connectDB();
 
