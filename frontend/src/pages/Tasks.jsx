@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { FiPlus, FiMoreHorizontal, FiCalendar, FiUser, FiClock, FiCheck, FiX, FiTrash2, FiStar, FiMessageSquare, FiEdit2 } from 'react-icons/fi';
+import { FiPlus, FiMoreHorizontal, FiCalendar, FiUser, FiClock, FiCheck, FiX, FiTrash2, FiStar } from 'react-icons/fi';
 import useTeamStore from '../stores/useTeamStore';
 import useTaskStore from '../stores/useTaskStore';
-import useAuthStore from '../stores/useAuthStore';
 import Avatar from '../components/common/Avatar';
 
 const columns = [
@@ -22,37 +21,6 @@ const priorityConfig = {
   urgent: { color: 'bg-red-400', label: 'Urgent', textColor: 'text-red-600 dark:text-red-400' },
 };
 
-function ConfettiEffect() {
-  const particles = Array.from({ length: 8 });
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {particles.map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1.5 h-1.5 rounded-full"
-          style={{
-            background: ['#7c3aed', '#22d3ee', '#10b981', '#f59e0b', '#ef4444'][i % 5],
-            left: `${25 + Math.random() * 50}%`,
-            top: `${45 + Math.random() * 20}%`,
-          }}
-          initial={{ scale: 0, opacity: 1 }}
-          animate={{
-            scale: [0, 1.5, 0],
-            opacity: [1, 1, 0],
-            y: [-10, -30 - Math.random() * 30],
-            x: [0, (Math.random() - 0.5) * 40],
-          }}
-          transition={{
-            duration: 0.5 + Math.random() * 0.3,
-            delay: Math.random() * 0.1,
-            ease: 'easeOut',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 function TaskCard({ task, index, onDelete }) {
   const [showActions, setShowActions] = useState(false);
 
@@ -64,92 +32,73 @@ function TaskCard({ task, index, onDelete }) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ 
-              opacity: 1, 
-              scale: 1,
-              transition: { duration: 0.15, ease: 'easeOut' } 
-            }}
-            exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.1 } }}
+          <div
             className={`
               group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing
               bg-white dark:bg-[#1a1c26]
               border border-dark-100 dark:border-dark-800/60
               transition-shadow duration-150 will-change-transform
               ${snapshot.isDragging
-                ? 'shadow-lg shadow-primary-500/10 rotate-[0.5deg] scale-[1.02] border-primary-300/50 dark:border-primary-700/50'
+                ? 'shadow-lg shadow-primary-500/10 rotate-[0.5deg] scale-[1.02] border-primary-300/50 dark:border-primary-700/50 z-10'
                 : 'shadow-sm hover:shadow-md hover:border-dark-200 dark:hover:border-dark-700/80'
               }
             `}
           >
-          {/* Priority bar */}
-          <div className={`absolute top-0 left-3 right-3 h-0.5 rounded-full ${priorityConfig[task.priority]?.color}`} />
+            {/* Priority bar */}
+            <div className={`absolute top-0 left-3 right-3 h-0.5 rounded-full ${priorityConfig[task.priority]?.color}`} />
 
-          <div className="flex items-start justify-between mb-2.5 pt-1">
-            <div className={`flex items-center gap-1.5 ${priorityConfig[task.priority]?.textColor}`}>
-              <FiStar className="w-3 h-3" />
-              <span className="text-[10px] font-medium uppercase tracking-wider">
-                {priorityConfig[task.priority]?.label}
-              </span>
-            </div>
-            <div className="relative">
-              <button
-                onClick={() => setShowActions(!showActions)}
-                className="p-1 rounded-lg text-dark-300 hover:text-dark-600 dark:hover:text-dark-200 hover:bg-dark-100 dark:hover:bg-dark-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              >
-                <FiMoreHorizontal className="w-4 h-4" />
-              </button>
-              <AnimatePresence>
+            <div className="flex items-start justify-between mb-2.5 pt-1">
+              <div className={`flex items-center gap-1.5 ${priorityConfig[task.priority]?.textColor}`}>
+                <FiStar className="w-3 h-3" />
+                <span className="text-[10px] font-medium uppercase tracking-wider">
+                  {priorityConfig[task.priority]?.label}
+                </span>
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setShowActions(!showActions)}
+                  className="p-1 rounded-lg text-dark-300 hover:text-dark-600 dark:hover:text-dark-200 hover:bg-dark-100 dark:hover:bg-dark-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                >
+                  <FiMoreHorizontal className="w-4 h-4" />
+                </button>
                 {showActions && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.1 }}
-                    className="absolute right-0 top-full mt-1 z-20 w-36 card p-1 shadow-xl border-dark-200 dark:border-dark-700"
-                  >
+                  <div className="absolute right-0 top-full mt-1 z-20 w-36 card p-1 shadow-xl border-dark-200 dark:border-dark-700">
                     <button
                       onClick={() => { onDelete(task._id); setShowActions(false); }}
                       className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors duration-150"
                     >
                       <FiTrash2 className="w-3.5 h-3.5" /> Delete task
                     </button>
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
+              </div>
+            </div>
+
+            <h4 className="text-sm font-medium text-dark-900 dark:text-dark-100 mb-1">
+              {task.title}
+            </h4>
+
+            {task.description && (
+              <p className="text-xs text-dark-500 dark:text-dark-400 line-clamp-2 mb-3">
+                {task.description}
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-dark-400">
+              {task.assignedTo && (
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-dark-50 dark:bg-dark-800/50">
+                  <Avatar user={task.assignedTo} size="sm" />
+                  <span className="truncate max-w-[80px]">{task.assignedTo?.name || 'Unassigned'}</span>
+                </div>
+              )}
+              {task.dueDate && (
+                <div className="flex items-center gap-1">
+                  <FiCalendar className="w-3 h-3" />
+                  <span>{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                </div>
+              )}
             </div>
           </div>
-
-          <h4 className="text-sm font-medium text-dark-900 dark:text-dark-100 mb-1">
-            {task.title}
-          </h4>
-
-          {task.description && (
-            <p className="text-xs text-dark-500 dark:text-dark-400 line-clamp-2 mb-3">
-              {task.description}
-            </p>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2 text-[11px] text-dark-400">
-            {task.assignedTo && (
-              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-dark-50 dark:bg-dark-800/50">
-                <Avatar user={task.assignedTo} size="sm" />
-                <span className="truncate max-w-[80px]">{task.assignedTo?.name || 'Unassigned'}</span>
-              </div>
-            )}
-            {task.dueDate && (
-              <div className="flex items-center gap-1">
-                <FiCalendar className="w-3 h-3" />
-                <span>{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Task completion animation */}
-          {task.status === 'completed' && snapshot.isDragging && <ConfettiEffect />}
-          </motion.div>
         </div>
       )}
     </Draggable>
@@ -161,15 +110,9 @@ function ColumnHeader({ column, count }) {
     <div className="flex items-center gap-2 mb-3 px-1">
       <div className={`w-2.5 h-2.5 rounded-full ${column.dotColor}`} />
       <h3 className="font-semibold text-sm text-dark-900 dark:text-dark-100">{column.title}</h3>
-      <motion.span
-        key={count}
-        initial={{ scale: 0.6 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.15, ease: 'easeOut' }}
-        className="ml-auto text-xs px-2 py-0.5 rounded-full bg-dark-100 dark:bg-dark-800 text-dark-500 dark:text-dark-400 font-medium"
-      >
+      <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-dark-100 dark:bg-dark-800 text-dark-500 dark:text-dark-400 font-medium">
         {count}
-      </motion.span>
+      </span>
     </div>
   );
 }
@@ -177,7 +120,6 @@ function ColumnHeader({ column, count }) {
 export default function Tasks() {
   const { team, fetchMyTeam } = useTeamStore();
   const { tasks, fetchTasks, createTask, updateTask, updateTaskStatus, deleteTask } = useTaskStore();
-  const user = useAuthStore((s) => s.user);
   const [showCreate, setShowCreate] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -255,19 +197,17 @@ export default function Tasks() {
             return (
               <motion.div
                 key={column.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: 0.05 }}
+                layout
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 className="min-w-[240px] flex flex-col"
               >
                 <ColumnHeader column={column} count={columnTasks.length} />
 
                 <Droppable droppableId={column.id}>
                   {(provided, snapshot) => (
-                    <motion.div
+                    <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      layout
                       className={`
                         flex-1 space-y-2.5 min-h-[150px] p-2 rounded-xl
                         transition-colors duration-200 border-2 border-dashed
@@ -277,18 +217,16 @@ export default function Tasks() {
                         }
                       `}
                     >
-                      <AnimatePresence mode="popLayout">
-                        {columnTasks.map((task, index) => (
-                          <TaskCard
-                            key={task._id}
-                            task={task}
-                            index={index}
-                            onDelete={handleDelete}
-                          />
-                        ))}
-                      </AnimatePresence>
+                      {columnTasks.map((task, index) => (
+                        <TaskCard
+                          key={task._id}
+                          task={task}
+                          index={index}
+                          onDelete={handleDelete}
+                        />
+                      ))}
                       {provided.placeholder}
-                    </motion.div>
+                    </div>
                   )}
                 </Droppable>
               </motion.div>
