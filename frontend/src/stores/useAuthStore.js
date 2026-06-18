@@ -2,14 +2,9 @@ import { create } from 'zustand';
 import api from '../services/api';
 
 const storedToken = localStorage.getItem('token');
-let storedUser = null;
-try {
-  const raw = localStorage.getItem('user');
-  if (raw) storedUser = JSON.parse(raw);
-} catch { }
 
 const useAuthStore = create((set, get) => ({
-  user: storedUser,
+  user: null,
   token: storedToken,
   loading: false,
   error: null,
@@ -20,7 +15,8 @@ const useAuthStore = create((set, get) => ({
     try {
       const { data } = await api.post('/auth/register', userData);
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const { avatar, ...safeUser } = data.user;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
       set({ user: data.user, token: data.token, loading: false });
       return data;
     } catch (error) {
@@ -35,7 +31,8 @@ const useAuthStore = create((set, get) => ({
     try {
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const { avatar, ...safeUser } = data.user;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
       set({ user: data.user, token: data.token, loading: false });
       return data;
     } catch (error) {
@@ -47,17 +44,12 @@ const useAuthStore = create((set, get) => ({
 
   loadUser: async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      set({ user: null });
-      return;
-    }
+    if (!token) { set({ user: null }); return; }
     try {
       const { data } = await api.get('/auth/me');
-      try {
-        localStorage.setItem('user', JSON.stringify(data));
-      } catch {
-        localStorage.removeItem('user');
-      }
+      const { avatar, ...safeUser } = data;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
+      // Keep avatar in the live store so it displays after refresh
       set({ user: data });
     } catch {
       localStorage.removeItem('token');
@@ -68,7 +60,8 @@ const useAuthStore = create((set, get) => ({
   updateProfile: async (profileData) => {
     try {
       const { data } = await api.put('/auth/profile', profileData);
-      localStorage.setItem('user', JSON.stringify(data));
+      const { avatar, ...safeUser } = data;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
       set({ user: data });
       return data;
     } catch (error) {
@@ -80,18 +73,12 @@ const useAuthStore = create((set, get) => ({
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      console.log('Uploading avatar file:', file.name, file.type, file.size);
       const { data } = await api.post('/auth/avatar', formData);
-      console.log('Upload response:', data);
-      try {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      } catch {
-        localStorage.removeItem('user');
-      }
+      const { avatar, ...safeUser } = data.user;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
       set({ user: data.user });
       return data;
     } catch (error) {
-      console.error('Upload failed:', error.response?.data || error.message);
       throw error.response?.data?.message || 'Upload failed';
     }
   },
@@ -99,7 +86,8 @@ const useAuthStore = create((set, get) => ({
   removeAvatar: async () => {
     try {
       const { data } = await api.delete('/auth/avatar');
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const { avatar, ...safeUser } = data.user;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
       set({ user: data.user });
       return data;
     } catch (error) {
