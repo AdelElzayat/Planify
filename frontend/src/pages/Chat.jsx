@@ -1,13 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiPaperclip, FiSmile, FiTrash2, FiEdit2, FiMoreVertical, FiHash, FiUsers, FiAtSign, FiCheck, FiCheckCircle } from 'react-icons/fi';
+import { FiSend, FiPaperclip, FiSmile, FiTrash2, FiEdit2, FiMoreVertical, FiCheck, FiX, FiHash } from 'react-icons/fi';
 import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
 import { getSocket, connectSocket } from '../services/socket';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
 
-function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
+function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction, editingId, setEditingId }) {
+  const [editContent, setEditContent] = useState('');
+  const isEditing = editingId === message._id;
+
+  const startEdit = () => {
+    setEditingId(message._id);
+    setEditContent(message.content);
+  };
+
+  const submitEdit = async () => {
+    const trimmed = editContent.trim();
+    if (!trimmed || trimmed === message.content) {
+      setEditingId(null);
+      return;
+    }
+    setEditingId(null);
+    await onEdit(message._id, trimmed);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -15,14 +33,14 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
       transition={{ duration: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
       className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : ''}`}
     >
-      {/* Avatar */}
-      <div className={`flex-shrink-0 mt-1`}>
+      {/* Avatar — always rendered so it never glitches away */}
+      <div className="flex-shrink-0 mt-1">
         <Avatar user={message.sender} size="md" />
       </div>
 
       {/* Message Content */}
       <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[75%]`}>
-        {/* Sender name & time */}
+        {/* Sender name & time — always rendered for non-own messages */}
         {!isOwn && (
           <div className="flex items-center gap-2 mb-1 px-1">
             <span className="text-xs font-medium text-dark-700 dark:text-dark-300">
@@ -35,34 +53,74 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
         )}
 
         {/* Bubble */}
-        <div className={`relative rounded-2xl px-4 py-2.5 ${
-          isOwn
-            ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-tr-md'
-            : 'bg-dark-50 dark:bg-dark-800/50 text-dark-900 dark:text-dark-100 rounded-tl-md border border-dark-100 dark:border-dark-800/60'
-        }`}>
-          <p className="text-sm leading-relaxed">{message.content}</p>
-
-          {/* Edit indicator */}
-          {message.edited && (
-            <span className={`text-[10px] ${isOwn ? 'text-white/60' : 'text-dark-400'} ml-1`}>
-              (edited)
-            </span>
-          )}
-
-          {/* Timestamp for own messages */}
-          {isOwn && (
-            <div className="flex items-center justify-end gap-1 mt-0.5">
-              <span className="text-[10px] text-white/60">
-                {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-              <FiCheckCircle className="w-3 h-3 text-white/60" />
+        <div
+          className={`relative rounded-2xl px-4 py-2.5 ${
+            isEditing
+              ? 'bg-white dark:bg-[#1a1c26] ring-2 ring-primary-500/40 shadow-lg'
+              : isOwn
+                ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-tr-md'
+                : 'bg-dark-50 dark:bg-dark-800/50 text-dark-900 dark:text-dark-100 rounded-tl-md border border-dark-100 dark:border-dark-800/60'
+          }`}
+        >
+          {isEditing ? (
+            <div className="space-y-2">
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitEdit();
+                  }
+                  if (e.key === 'Escape') {
+                    setEditingId(null);
+                  }
+                }}
+                className="w-full bg-dark-50 dark:bg-dark-800/50 text-dark-900 dark:text-dark-100 text-sm rounded-lg px-3 py-2 outline-none border border-dark-200 dark:border-dark-700 resize-none focus:ring-2 focus:ring-primary-500/30"
+                rows={2}
+                autoFocus
+              />
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={submitEdit}
+                  className="p-1.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                >
+                  <FiCheck className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="p-1.5 rounded-lg bg-dark-200 dark:bg-dark-700 text-dark-600 dark:text-dark-300 hover:bg-dark-300 dark:hover:bg-dark-600 transition-colors"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
+          ) : (
+            <>
+              <p className="text-sm leading-relaxed">{message.content}</p>
+
+              {/* Edit indicator */}
+              {message.edited && (
+                <span className={`text-[10px] ${isOwn ? 'text-white/60' : 'text-dark-400'} ml-1`}>
+                  (edited)
+                </span>
+              )}
+
+              {/* Timestamp for own messages */}
+              {isOwn && (
+                <div className="flex items-center justify-end gap-1 mt-0.5">
+                  <span className="text-[10px] text-white/60">
+                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* Reactions */}
         <AnimatePresence>
-          {message.reactions?.length > 0 && (
+          {message.reactions?.length > 0 && !isEditing && (
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
@@ -88,27 +146,29 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
           )}
         </AnimatePresence>
 
-        {/* Quick reactions */}
-        <div className={`flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ${isOwn ? 'flex-row-reverse' : ''}`}>
-          {['👍', '❤️', '😂', '😮'].map((emoji) => (
-            <motion.button
-              key={emoji}
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onReaction(message._id, emoji)}
-              className="text-sm opacity-60 hover:opacity-100 transition-opacity duration-100"
-            >
-              {emoji}
-            </motion.button>
-          ))}
-        </div>
+        {/* Quick reactions — hidden while editing */}
+        {!isEditing && (
+          <div className={`flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ${isOwn ? 'flex-row-reverse' : ''}`}>
+            {['👍', '❤️', '😂', '😮'].map((emoji) => (
+              <motion.button
+                key={emoji}
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onReaction(message._id, emoji)}
+                className="text-sm opacity-60 hover:opacity-100 transition-opacity duration-100"
+              >
+                {emoji}
+              </motion.button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Actions (own messages) */}
-      {isOwn && (
+      {/* Actions (own messages) — hidden while editing */}
+      {isOwn && !isEditing && (
         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
           <button
-            onClick={() => onEdit(message._id, message.content)}
+            onClick={() => startEdit()}
             className="p-1 rounded text-dark-400 hover:text-primary-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150"
           >
             <FiEdit2 className="w-3 h-3" />
@@ -125,37 +185,6 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction }) {
   );
 }
 
-function TypingIndicator({ users }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.12 }}
-      className="flex items-center gap-2 px-3 py-2"
-    >
-      <div className="flex gap-1">
-        {[0, 1, 2].map((i) => (
-          <motion.div
-            key={i}
-            className="w-1.5 h-1.5 rounded-full bg-dark-400"
-            animate={{ y: [0, -3, 0] }}
-            transition={{
-              duration: 0.6,
-              repeat: Infinity,
-              delay: i * 0.12,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </div>
-      <span className="text-xs text-dark-400">
-        {users.map((u) => u.name).join(', ')} typing...
-      </span>
-    </motion.div>
-  );
-}
-
 export default function Chat() {
   const { team, fetchMyTeam } = useTeamStore();
   const user = useAuthStore((s) => s.user);
@@ -164,6 +193,7 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingId, setEditingId] = useState(null);
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
 
@@ -213,7 +243,7 @@ export default function Chat() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, editingId]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -233,12 +263,10 @@ export default function Chat() {
   };
 
   const handleEdit = async (messageId, content) => {
-    const newContent = prompt('Edit message:', content);
-    if (!newContent || newContent === content) return;
-
     try {
-      const { data } = await api.put(`/messages/${messageId}`, { content: newContent });
+      const { data } = await api.put(`/messages/${messageId}`, { content });
       socketRef.current?.emit('message_edited', { ...data, teamId: team._id });
+      setEditingId(null);
     } catch (error) {
       console.error('Failed to edit message:', error);
     }
@@ -325,6 +353,8 @@ export default function Chat() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onReaction={handleReaction}
+                editingId={editingId}
+                setEditingId={setEditingId}
               />
             ))}
           </>
