@@ -253,16 +253,32 @@ export default function Chat() {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    try {
-      const { data } = await api.post(`/messages/${team._id}`, { content: newMessage });
-      setMessages((prev) => [...prev, data]);
-      setNewMessage('');
+    const content = newMessage;
+    setNewMessage('');
+
+    // Optimistic: add to UI instantly
+    const tempMsg = {
+      _id: `temp-${Date.now()}`,
+      content,
+      sender: { _id: user._id, name: user.name, email: user.email, avatar: user.avatar },
+      team: team._id,
+      createdAt: new Date(),
+      edited: false,
+      reactions: [],
+      messageType: 'text',
+    };
+    setMessages((prev) => [...prev, tempMsg]);
+
+    // Fire API in background
+    api.post(`/messages/${team._id}`, { content }).then(({ data }) => {
+      setMessages((prev) => prev.map((m) => (m._id === tempMsg._id ? data : m)));
       if (socketRef.current?.connected) {
         socketRef.current.emit('send_message', { ...data, teamId: team._id });
       }
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
+    }).catch((err) => {
+      console.error('Failed to send message:', err);
+      setMessages((prev) => prev.filter((m) => m._id !== tempMsg._id));
+    });
   };
 
   const handleTyping = (isTyping) => {
@@ -272,41 +288,70 @@ export default function Chat() {
   };
 
   const handleEdit = async (messageId, content) => {
-    try {
-      const { data } = await api.put(`/messages/${messageId}`, { content });
+    setEditingId(null);
+
+    // Optimistic update
+    setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, content, edited: true } : m)));
+
+    // Fire API in background
+    api.put(`/messages/${messageId}`, { content }).then(({ data }) => {
       setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
-      setEditingId(null);
       if (socketRef.current?.connected) {
         socketRef.current.emit('message_edited', { ...data, teamId: team._id });
       }
-    } catch (error) {
-      console.error('Failed to edit message:', error);
-    }
+    }).catch((err) => {
+      console.error('Failed to edit message:', err);
+    });
   };
 
   const handleDelete = async (messageId) => {
     if (!window.confirm('Delete this message?')) return;
-    try {
-      await api.delete(`/messages/${messageId}`);
-      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+
+    // Optimistic update
+    setMessages((prev) => prev.filter((m) => m._id !== messageId));
+
+    // Fire API in background
+    api.delete(`/messages/${messageId}`).then(() => {
       if (socketRef.current?.connected) {
         socketRef.current.emit('message_deleted', { _id: messageId, teamId: team._id });
       }
-    } catch (error) {
-      console.error('Failed to delete message:', error);
-    }
+    }).catch((err) => {
+      console.error('Failed to delete message:', err);
+    });
   };
 
   const handleReaction = async (messageId, emoji) => {
-    try {
-      const { data } = await api.post(`/messages/${messageId}/reactions`, { emoji });
+    // Optimistic update: toggle reaction locally
+    setMessages((prev) => prev.map((m) => {
+      if (m._id !== messageId) return m;
+      const reactions = [...(m.reactions || [])];
+      const existing = reactions.find((r) => r.emoji === emoji);
+      const uid = user._id;
+      if (existing) {
+        const idx = existing.users.indexOf(uid);
+        if (idx > -1) {
+          existing.users = existing.users.filter((u) => u !== uid);
+          if (existing.users.length === 0) {
+            return { ...m, reactions: reactions.filter((r) => r.emoji !== emoji) };
+          }
+        } else {
+          existing.users = [...existing.users, uid];
+        }
+      } else {
+        reactions.push({ emoji, users: [uid] });
+      }
+      return { ...m, reactions };
+    }));
+
+    // Fire API in background
+    api.post(`/messages/${messageId}/reactions`, { emoji }).then(({ data }) => {
       setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
       if (socketRef.current?.connected) {
         socketRef.current.emit('reaction_added', { ...data, teamId: team._id });
       }
-    } catch (error) {
-      console.error('Failed to add reaction:', error);
-    }
+    }).catch((err) => {
+      console.error('Failed to add reaction:', err);
+    });
   };
 
   if (!team) {
