@@ -48,7 +48,7 @@ function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingI
 
           return (
             <div key={msg._id} id={`msg-${msg._id}`} className="group/message relative">
-              {/* Sender name + timestamp – only on first message */}
+              {/* Sender name + date – only on first message */}
               {isFirst && (
                 <div className="flex items-baseline gap-2 pt-1">
                   <span className="text-sm font-semibold text-dark-900 dark:text-dark-100 hover:underline cursor-pointer">
@@ -106,7 +106,7 @@ function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingI
                   </div>
                 )}
                 </div>
-                {/* Timestamp on the right – always visible */}
+                {/* Timestamp on the right – shows on hover like Discord */}
                 {!isEditing && (
                   <span className="text-[10px] text-dark-400 flex-shrink-0 pt-1.5 opacity-0 group-hover/message:opacity-100 transition-opacity duration-100">
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -194,36 +194,48 @@ export default function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editContent, setEditContent] = useState('');
   const [showMembers, setShowMembers] = useState(true);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const socketRef = useRef(null);
   const inputRef = useRef(null);
+  const prevScrollHeightRef = useRef(0);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
     fetchMyTeam();
   }, []);
 
+  // ── Socket connection ──
   useEffect(() => {
     if (!token || !team?._id) return;
 
     let mounted = true;
 
-    connectSocket(token).then((socket) => {
+    const setupSocketConnection = async () => {
+      const socket = await connectSocket(token);
       if (!mounted) return;
       socketRef.current = socket;
 
       socket.emit('join_team', team._id);
 
-      api.get(`/messages/${team._id}`).then(({ data }) => {
-        if (!mounted) return;
-        setMessages(data);
-        setIsLoading(false);
-      });
+      // Fetch initial messages (last 50)
+      fetchMessages(team._id);
 
       socket.on('new_message', (message) => {
-        setMessages((prev) => [...prev, message]);
+        setMessages((prev) => {
+          // Deduplicate: skip if temp message or already exists
+          if (prev.some((m) => m._id === message._id || m._id === `temp-${message._id}`)) return prev;
+          return [...prev, message];
+        });
+        // Auto-scroll to bottom on new messages
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 50);
       });
 
       socket.on('user_typing', (data) => {
@@ -241,7 +253,17 @@ export default function Chat() {
       socket.on('message_removed', (data) => {
         setMessages((prev) => prev.filter((m) => m._id !== data._id));
       });
-    });
+
+      // On reconnect, fetch any missed messages
+      socket.on('connect', () => {
+        console.log('Socket reconnected, joining team...');
+        if (team?._id) {
+          socket.emit('join_team', team._id);
+        }
+      });
+    };
+
+    setupSocketConnection();
 
     return () => {
       mounted = false;
@@ -251,13 +273,75 @@ export default function Chat() {
     };
   }, [token, team?._id]);
 
+  // ── Fetch messages (initial or paginated) ──
+  const fetchMessages = async (teamId, before = null) => {
+    try {
+      const params = before ? `?before=${before}&limit=50` : '?limit=50';
+      const { data } = await api.get(`/messages/${teamId}${params}`);
+
+      if (before) {
+        // Paginated: prepend older messages
+        setMessages((prev) => [...data.messages, ...prev]);
+        setHasMoreMessages(data.hasMore);
+
+        // Restore scroll position after prepending
+        requestAnimationFrame(() => {
+          if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop =
+              messagesContainerRef.current.scrollHeight - prevScrollHeightRef.current;
+          }
+        });
+      } else {
+        // Initial load
+        setMessages(data.messages);
+        setHasMoreMessages(data.hasMore);
+        setIsLoading(false);
+        initialLoadDone.current = true;
+
+        // Scroll to bottom
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView();
+        }, 100);
+      }
+    } catch (err) {
+      console.error('Failed to fetch messages:', err);
+      if (!before) setIsLoading(false);
+    }
+  };
+
+  // ── Infinite scroll: load more when scrolling to top ──
+  const handleScroll = useCallback(() => {
+    if (!messagesContainerRef.current || isLoadingMore || !hasMoreMessages) return;
+
+    const { scrollTop } = messagesContainerRef.current;
+
+    // Trigger load more when within 200px of the top
+    if (scrollTop < 200) {
+      const oldestMsg = messages[0];
+      if (oldestMsg && !oldestMsg._id.startsWith('temp-')) {
+        setIsLoadingMore(true);
+        prevScrollHeightRef.current = messagesContainerRef.current.scrollHeight;
+        fetchMessages(team._id, oldestMsg._id).finally(() => {
+          setIsLoadingMore(false);
+        });
+      }
+    }
+  }, [isLoadingMore, hasMoreMessages, messages, team?._id]);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (initialLoadDone.current) {
+      // Add scroll listener after initial load
+      const container = messagesContainerRef.current;
+      if (container) {
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        return () => container.removeEventListener('scroll', handleScroll);
+      }
+    }
+  }, [handleScroll, initialLoadDone.current]);
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !team?._id) return;
 
     const content = newMessage;
     setNewMessage('');
@@ -274,6 +358,11 @@ export default function Chat() {
       messageType: 'text',
     };
     setMessages((prev) => [...prev, tempMsg]);
+
+    // Auto-scroll
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
 
     // Fire API in background
     api.post(`/messages/${team._id}`, { content }).then(({ data }) => {
@@ -295,11 +384,8 @@ export default function Chat() {
 
   const handleEdit = async (messageId, content) => {
     setEditingId(null);
-
-    // Optimistic update
     setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, content, edited: true } : m)));
 
-    // Fire API in background
     api.put(`/messages/${messageId}`, { content }).then(({ data }) => {
       setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
       if (socketRef.current?.connected) {
@@ -312,11 +398,8 @@ export default function Chat() {
 
   const handleDelete = async (messageId) => {
     if (!window.confirm('Delete this message?')) return;
-
-    // Optimistic update
     setMessages((prev) => prev.filter((m) => m._id !== messageId));
 
-    // Fire API in background
     api.delete(`/messages/${messageId}`).then(() => {
       if (socketRef.current?.connected) {
         socketRef.current.emit('message_deleted', { _id: messageId, teamId: team._id });
@@ -327,7 +410,6 @@ export default function Chat() {
   };
 
   const handleReaction = async (messageId, emoji) => {
-    // Optimistic update: toggle reaction locally
     setMessages((prev) => prev.map((m) => {
       if (m._id !== messageId) return m;
       const reactions = [...(m.reactions || [])];
@@ -349,7 +431,6 @@ export default function Chat() {
       return { ...m, reactions };
     }));
 
-    // Fire API in background
     api.post(`/messages/${messageId}/reactions`, { emoji }).then(({ data }) => {
       setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
       if (socketRef.current?.connected) {
@@ -415,7 +496,36 @@ export default function Chat() {
         </div>
 
         {/* ── Messages Area ── */}
-        <div className="flex-1 overflow-y-auto smooth-scroll bg-white dark:bg-[#1a1c26]">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto smooth-scroll bg-white dark:bg-[#1a1c26]">
+          {/* Loading more indicator */}
+          <AnimatePresence>
+            {isLoadingMore && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center py-4"
+              >
+                <div className="flex gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 rounded-full bg-primary-500"
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{
+                        duration: 0.5,
+                        repeat: Infinity,
+                        delay: i * 0.15,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-dark-400 ml-2">Loading older messages...</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {isLoading ? (
             <div className="space-y-4 p-4">
               {[...Array(5)].map((_, i) => (
@@ -437,7 +547,6 @@ export default function Chat() {
           ) : (
             <div className="py-2 space-y-0">
               {groupedMessages.map((group, idx) => {
-                // If the gap between this group and the last is more than 5 minutes, show a divider
                 const prevGroup = groupedMessages[idx - 1];
                 let showDivider = false;
                 if (prevGroup) {
@@ -475,6 +584,14 @@ export default function Chat() {
             </div>
           )}
 
+          {!hasMoreMessages && messages.length > 0 && (
+            <div className="flex items-center gap-2 px-4 py-3">
+              <div className="flex-1 h-px bg-dark-200 dark:bg-dark-800" />
+              <span className="text-[10px] text-dark-400 font-medium">Beginning of conversation</span>
+              <div className="flex-1 h-px bg-dark-200 dark:bg-dark-800" />
+            </div>
+          )}
+
           <AnimatePresence>
             {typingUsers.length > 0 && (
               <motion.div
@@ -500,7 +617,7 @@ export default function Chat() {
                   ))}
                 </div>
                 <span className="text-xs text-dark-400">
-                  {typingUsers.map((u) => u.name).join(', ')} typing{typingUsers.length > 1 ? '...' : '...'}
+                  {typingUsers.map((u) => u.name).join(', ')} typing...
                 </span>
               </motion.div>
             )}
@@ -572,14 +689,11 @@ export default function Chat() {
             className="border-l border-dark-100 dark:border-dark-800/60 bg-white dark:bg-[#1a1c26] overflow-hidden flex-shrink-0 hidden md:block"
           >
             <div className="w-[240px] h-full flex flex-col">
-              {/* Members header */}
               <div className="px-4 py-3 border-b border-dark-100 dark:border-dark-800/60">
                 <h3 className="text-xs font-semibold text-dark-500 dark:text-dark-400 uppercase tracking-wider">
                   Members — {onlineMembers.length}
                 </h3>
               </div>
-
-              {/* Members list */}
               <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
                 <div className="px-2 py-1">
                   <p className="text-[10px] font-semibold text-dark-400 uppercase tracking-wider">Online — {onlineMembers.length}</p>

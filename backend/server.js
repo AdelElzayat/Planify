@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const dotenv = require('dotenv');
 const connectDB = require('./config/database');
@@ -14,12 +15,17 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+// ── Performance middleware ──
+app.use(compression()); // Gzip all responses — huge bandwidth savings
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://planify-debuggers.vercel.app'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://planify-debuggers.vercel.app', 'https://planify-debuggers.vercel.app/*'],
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Parse JSON with a size limit to prevent abuse
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

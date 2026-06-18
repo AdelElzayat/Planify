@@ -1,17 +1,40 @@
 const Message = require('../models/Message');
 
+const MESSAGES_PER_PAGE = 50;
+
 const getMessages = async (req, res) => {
   try {
-    const messages = await Message.find({ 
-      team: req.params.teamId,
-      deleted: false 
-    })
-      .populate('sender', 'name email avatar')
-      .populate('replyTo')
-      .sort({ createdAt: 1 })
-      .limit(100);
+    const { teamId } = req.params;
+    const { before, limit } = req.query; // `before` = cursor (message _id), `limit` = items per page
 
-    res.json(messages);
+    const queryLimit = Math.min(parseInt(limit) || MESSAGES_PER_PAGE, 100);
+
+    const filter = { team: teamId, deleted: false };
+
+    // Cursor-based pagination: fetch messages older than `before`
+    if (before) {
+      filter._id = { $lt: before };
+    }
+
+    const messages = await Message.find(filter)
+      .select('-__v') // Exclude version key
+      .populate('sender', 'name email avatar')
+      .sort({ createdAt: -1 }) // Newest first for pagination
+      .limit(queryLimit + 1)    // Fetch +1 to know if there are more
+      .lean()                   // Plain JS objects – much faster than Mongoose docs
+      .exec();
+
+    const hasMore = messages.length > queryLimit;
+    if (hasMore) messages.pop(); // Remove the extra item
+
+    // Reverse to chronological order for the UI
+    messages.reverse();
+
+    res.json({
+      messages,
+      hasMore,
+      nextCursor: hasMore && messages.length > 0 ? messages[0]._id : null,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -20,7 +43,7 @@ const getMessages = async (req, res) => {
 const sendMessage = async (req, res) => {
   try {
     const { content, replyTo } = req.body;
-    
+
     const message = await Message.create({
       team: req.params.teamId,
       sender: req.user._id,
@@ -30,7 +53,10 @@ const sendMessage = async (req, res) => {
     });
 
     const populated = await Message.findById(message._id)
-      .populate('sender', 'name email avatar');
+      .select('-__v')
+      .populate('sender', 'name email avatar')
+      .lean()
+      .exec();
 
     res.status(201).json(populated);
   } catch (error) {
@@ -40,7 +66,7 @@ const sendMessage = async (req, res) => {
 
 const editMessage = async (req, res) => {
   try {
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(req.params.id).exec();
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -55,7 +81,10 @@ const editMessage = async (req, res) => {
     await message.save();
 
     const populated = await Message.findById(message._id)
-      .populate('sender', 'name email avatar');
+      .select('-__v')
+      .populate('sender', 'name email avatar')
+      .lean()
+      .exec();
 
     res.json(populated);
   } catch (error) {
@@ -65,7 +94,7 @@ const editMessage = async (req, res) => {
 
 const deleteMessage = async (req, res) => {
   try {
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(req.params.id).exec();
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -87,7 +116,7 @@ const deleteMessage = async (req, res) => {
 const addReaction = async (req, res) => {
   try {
     const { emoji } = req.body;
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findById(req.params.id).exec();
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
@@ -113,7 +142,10 @@ const addReaction = async (req, res) => {
     await message.save();
 
     const populated = await Message.findById(message._id)
-      .populate('sender', 'name email avatar');
+      .select('-__v')
+      .populate('sender', 'name email avatar')
+      .lean()
+      .exec();
 
     res.json(populated);
   } catch (error) {
@@ -138,7 +170,10 @@ const uploadFileMessage = async (req, res) => {
     });
 
     const populated = await Message.findById(message._id)
-      .populate('sender', 'name email avatar');
+      .select('-__v')
+      .populate('sender', 'name email avatar')
+      .lean()
+      .exec();
 
     res.status(201).json(populated);
   } catch (error) {
