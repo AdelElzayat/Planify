@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
-const cloudinary = require('../config/cloudinary');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -104,35 +105,35 @@ const updateProfile = async (req, res) => {
 
 const uploadAvatar = async (req, res) => {
   try {
-    if (!req.file) {
+    const userId = req.user._id;
+
+    // If there's an old avatar file, delete it
+    const oldUser = await User.findById(userId);
+    if (oldUser?.avatar && oldUser.avatar.startsWith('/uploads/avatars/')) {
+      const oldPath = path.join(__dirname, '..', oldUser.avatar);
+      if (fs.existsSync(oldPath)) {
+        try { fs.unlinkSync(oldPath); } catch {}
+      }
+    }
+
+    let filename;
+    if (req.file) {
+      // New file upload via multer (memoryStorage) — write to disk
+      const uploadsDir = path.join(__dirname, '..', 'uploads', 'avatars');
+      if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+      const ext = path.extname(req.file.originalname);
+      filename = `avatar-${userId}-${Date.now()}${ext}`;
+      const dest = path.join(uploadsDir, filename);
+      fs.writeFileSync(dest, req.file.buffer);
+    } else {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const user = await User.findById(req.user._id);
-    const hasCloudinary = cloudinary.config().cloud_name;
-
-    if (hasCloudinary) {
-      // Cloudinary upload
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: 'gradhub/avatars', transformation: [{ width: 200, height: 200, crop: 'fill', gravity: 'face' }] },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        ).end(req.file.buffer);
-      });
-
-      user.avatar = result.secure_url;
-    } else {
-      // Fallback: base64 stored in MongoDB
-      const base64 = req.file.buffer.toString('base64');
-      user.avatar = `data:${req.file.mimetype};base64,${base64}`;
-    }
-
-    await user.save();
+    const user = await User.findByIdAndUpdate(userId, { avatar: `/uploads/avatars/${filename}` }, { new: true });
     res.json({ avatar: user.avatar, user });
   } catch (error) {
+    console.error('Upload avatar error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -141,12 +142,11 @@ const removeAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
-    // If Cloudinary URL, try to delete from cloud
-    if (user.avatar && user.avatar.includes('cloudinary.com')) {
-      try {
-        const publicId = user.avatar.split('/').slice(-2).join('/').split('.')[0];
-        await cloudinary.uploader.destroy(publicId);
-      } catch {}
+    if (user.avatar && user.avatar.startsWith('/uploads/avatars/')) {
+      const filePath = path.join(__dirname, '..', user.avatar);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch {}
+      }
     }
 
     user.avatar = '';

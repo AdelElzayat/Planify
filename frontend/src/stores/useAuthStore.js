@@ -53,11 +53,14 @@ const useAuthStore = create((set, get) => ({
     }
     try {
       const { data } = await api.get('/auth/me');
-      localStorage.setItem('user', JSON.stringify(data));
+      try {
+        localStorage.setItem('user', JSON.stringify(data));
+      } catch {
+        localStorage.removeItem('user');
+      }
       set({ user: data });
     } catch {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
       set({ user: null, token: null });
     }
   },
@@ -77,13 +80,18 @@ const useAuthStore = create((set, get) => ({
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-      const { data } = await api.post('/auth/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      localStorage.setItem('user', JSON.stringify(data.user));
+      console.log('Uploading avatar file:', file.name, file.type, file.size);
+      const { data } = await api.post('/auth/avatar', formData);
+      console.log('Upload response:', data);
+      try {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } catch {
+        localStorage.removeItem('user');
+      }
       set({ user: data.user });
       return data;
     } catch (error) {
+      console.error('Upload failed:', error.response?.data || error.message);
       throw error.response?.data?.message || 'Upload failed';
     }
   },
