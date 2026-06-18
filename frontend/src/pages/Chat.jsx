@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiPaperclip, FiSmile, FiTrash2, FiEdit2, FiMoreVertical, FiCheck, FiX, FiHash } from 'react-icons/fi';
+import { FiSend, FiPaperclip, FiSmile, FiTrash2, FiEdit2, FiCheck, FiX, FiHash } from 'react-icons/fi';
 import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
-import { getSocket, connectSocket } from '../services/socket';
+import { connectSocket } from '../services/socket';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
 
@@ -99,14 +99,12 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction, editingId
             <>
               <p className="text-sm leading-relaxed">{message.content}</p>
 
-              {/* Edit indicator */}
               {message.edited && (
                 <span className={`text-[10px] ${isOwn ? 'text-white/60' : 'text-dark-400'} ml-1`}>
                   (edited)
                 </span>
               )}
 
-              {/* Timestamp for own messages */}
               {isOwn && (
                 <div className="flex items-center justify-end gap-1 mt-0.5">
                   <span className="text-[10px] text-white/60">
@@ -168,7 +166,7 @@ function MessageBubble({ message, isOwn, onEdit, onDelete, onReaction, editingId
       {isOwn && !isEditing && (
         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
           <button
-            onClick={() => startEdit()}
+            onClick={startEdit}
             className="p-1 rounded text-dark-400 hover:text-primary-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150"
           >
             <FiEdit2 className="w-3 h-3" />
@@ -204,39 +202,45 @@ export default function Chat() {
   useEffect(() => {
     if (!token || !team?._id) return;
 
-    const socket = connectSocket(token);
-    socketRef.current = socket;
+    let mounted = true;
 
-    socket.emit('join_team', team._id);
+    connectSocket(token).then((socket) => {
+      if (!mounted) return;
+      socketRef.current = socket;
 
-    api.get(`/messages/${team._id}`).then(({ data }) => {
-      setMessages(data);
-      setIsLoading(false);
-    });
+      socket.emit('join_team', team._id);
 
-    socket.on('new_message', (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
+      api.get(`/messages/${team._id}`).then(({ data }) => {
+        if (!mounted) return;
+        setMessages(data);
+        setIsLoading(false);
+      });
 
-    socket.on('user_typing', (data) => {
-      if (data.isTyping) {
-        setTypingUsers((prev) => [...prev.filter((u) => u.userId !== data.userId), data]);
-      } else {
-        setTypingUsers((prev) => prev.filter((u) => u.userId !== data.userId));
-      }
-    });
+      socket.on('new_message', (message) => {
+        setMessages((prev) => [...prev, message]);
+      });
 
-    socket.on('message_updated', (data) => {
-      setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
-    });
+      socket.on('user_typing', (data) => {
+        if (data.isTyping) {
+          setTypingUsers((prev) => [...prev.filter((u) => u.userId !== data.userId), data]);
+        } else {
+          setTypingUsers((prev) => prev.filter((u) => u.userId !== data.userId));
+        }
+      });
 
-    socket.on('message_removed', (data) => {
-      setMessages((prev) => prev.filter((m) => m._id !== data._id));
+      socket.on('message_updated', (data) => {
+        setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
+      });
+
+      socket.on('message_removed', (data) => {
+        setMessages((prev) => prev.filter((m) => m._id !== data._id));
+      });
     });
 
     return () => {
-      if (team?._id) {
-        socket.emit('leave_team', team._id);
+      mounted = false;
+      if (socketRef.current && team?._id) {
+        socketRef.current.emit('leave_team', team._id);
       }
     };
   }, [token, team?._id]);
@@ -251,22 +255,30 @@ export default function Chat() {
 
     try {
       const { data } = await api.post(`/messages/${team._id}`, { content: newMessage });
-      socketRef.current?.emit('send_message', { ...data, teamId: team._id });
+      setMessages((prev) => [...prev, data]);
       setNewMessage('');
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('send_message', { ...data, teamId: team._id });
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     }
   };
 
   const handleTyping = (isTyping) => {
-    socketRef.current?.emit('typing', { teamId: team._id, isTyping });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('typing', { teamId: team._id, isTyping });
+    }
   };
 
   const handleEdit = async (messageId, content) => {
     try {
       const { data } = await api.put(`/messages/${messageId}`, { content });
-      socketRef.current?.emit('message_edited', { ...data, teamId: team._id });
+      setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
       setEditingId(null);
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('message_edited', { ...data, teamId: team._id });
+      }
     } catch (error) {
       console.error('Failed to edit message:', error);
     }
@@ -276,7 +288,10 @@ export default function Chat() {
     if (!window.confirm('Delete this message?')) return;
     try {
       await api.delete(`/messages/${messageId}`);
-      socketRef.current?.emit('message_deleted', { _id: messageId, teamId: team._id });
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('message_deleted', { _id: messageId, teamId: team._id });
+      }
     } catch (error) {
       console.error('Failed to delete message:', error);
     }
@@ -285,7 +300,10 @@ export default function Chat() {
   const handleReaction = async (messageId, emoji) => {
     try {
       const { data } = await api.post(`/messages/${messageId}/reactions`, { emoji });
-      socketRef.current?.emit('reaction_added', { ...data, teamId: team._id });
+      setMessages((prev) => prev.map((m) => (m._id === data._id ? data : m)));
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('reaction_added', { ...data, teamId: team._id });
+      }
     } catch (error) {
       console.error('Failed to add reaction:', error);
     }
@@ -316,7 +334,7 @@ export default function Chat() {
           <p className="text-xs text-dark-500">{team?.members?.length} members online</p>
         </div>
         <div className="flex -space-x-2">
-          {team?.members?.slice(0, 5).map((member, idx) => (
+          {team?.members?.slice(0, 5).map((member) => (
             <div key={member.user?._id} className="border-2 border-white dark:border-surface-dark rounded-full" title={member.user?.name}>
               <Avatar user={member.user} size="sm" />
             </div>
@@ -361,7 +379,34 @@ export default function Chat() {
         )}
 
         <AnimatePresence>
-          {typingUsers.length > 0 && <TypingIndicator users={typingUsers} />}
+          {typingUsers.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.12 }}
+              className="flex items-center gap-2 px-3 py-2"
+            >
+              <div className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-1.5 h-1.5 rounded-full bg-dark-400"
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                      delay: i * 0.12,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-dark-400">
+                {typingUsers.map((u) => u.name).join(', ')} typing...
+              </span>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         <div ref={messagesEndRef} />
@@ -395,8 +440,8 @@ export default function Chat() {
           <motion.button
             type="submit"
             disabled={!newMessage.trim()}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: newMessage.trim() ? 1.05 : 1 }}
+            whileTap={{ scale: newMessage.trim() ? 0.95 : 1 }}
             className="p-2.5 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 shadow-lg shadow-primary-500/20"
           >
             <FiSend className="w-4 h-4" />

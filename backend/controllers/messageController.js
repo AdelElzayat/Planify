@@ -54,7 +54,10 @@ const editMessage = async (req, res) => {
     message.editedAt = new Date();
     await message.save();
 
-    res.json(message);
+    const populated = await Message.findById(message._id)
+      .populate('sender', 'name email avatar');
+
+    res.json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -108,7 +111,11 @@ const addReaction = async (req, res) => {
     }
 
     await message.save();
-    res.json(message);
+
+    const populated = await Message.findById(message._id)
+      .populate('sender', 'name email avatar');
+
+    res.json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
