@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
-const path = require('path');
-const fs = require('fs');
 const User = require('../models/User');
+const cloudinary = require('../config/cloudinary');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -110,13 +109,28 @@ const uploadAvatar = async (req, res) => {
     }
 
     const user = await User.findById(req.user._id);
+    const hasCloudinary = cloudinary.config().cloud_name;
 
-    // Convert file buffer to base64 data URL and store directly in MongoDB
-    const base64 = req.file.buffer.toString('base64');
-    const mimeType = req.file.mimetype;
-    user.avatar = `data:${mimeType};base64,${base64}`;
+    if (hasCloudinary) {
+      // Cloudinary upload
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: 'gradhub/avatars', transformation: [{ width: 200, height: 200, crop: 'fill', gravity: 'face' }] },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        ).end(req.file.buffer);
+      });
+
+      user.avatar = result.secure_url;
+    } else {
+      // Fallback: base64 stored in MongoDB
+      const base64 = req.file.buffer.toString('base64');
+      user.avatar = `data:${req.file.mimetype};base64,${base64}`;
+    }
+
     await user.save();
-
     res.json({ avatar: user.avatar, user });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -127,11 +141,12 @@ const removeAvatar = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
-    if (user.avatar) {
-      const oldPath = path.join(__dirname, '..', user.avatar);
-      if (fs.existsSync(oldPath)) {
-        try { fs.unlinkSync(oldPath); } catch {}
-      }
+    // If Cloudinary URL, try to delete from cloud
+    if (user.avatar && user.avatar.includes('cloudinary.com')) {
+      try {
+        const publicId = user.avatar.split('/').slice(-2).join('/').split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+      } catch {}
     }
 
     user.avatar = '';
