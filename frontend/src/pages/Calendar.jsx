@@ -14,22 +14,28 @@ const priorityColors = {
   low: 'bg-gradient-to-r from-dark-400 to-dark-500 text-white',
 };
 
+import PageSkeleton from '../components/common/PageLoader';
+
 export default function CalendarPage() {
   const { team, fetchMyTeam } = useTeamStore();
   const { tasks, fetchTasks } = useTaskStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarDays, setCalendarDays] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
-    fetchMyTeam();
+    fetchMyTeam().finally(() => setHasLoaded(true));
   }, []);
 
   useEffect(() => {
-    if (team?._id) {
-      fetchTasks(team._id);
+    if (team?._id && hasLoaded) {
+      fetchTasks(team._id).finally(() => setIsLoading(false));
+    } else if (hasLoaded) {
+      setIsLoading(false);
     }
-  }, [team?._id]);
+  }, [team?._id, hasLoaded]);
 
   useEffect(() => {
     generateCalendar();
@@ -78,6 +84,8 @@ export default function CalendarPage() {
     .filter((t) => t.dueDate && t.status !== 'completed')
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
     .slice(0, 10);
+
+  if (isLoading) return <PageSkeleton type="calendar" />;
 
   return (
     <div className="space-y-6">

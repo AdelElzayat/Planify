@@ -5,6 +5,7 @@ import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
 import api from '../services/api';
 import Avatar from '../components/common/Avatar';
+import PageSkeleton from '../components/common/PageLoader';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -18,6 +19,11 @@ const itemVariants = {
 
 export default function Team() {
   const { team, fetchMyTeam, createTeam, joinTeam, updateTeam, removeMember, loading } = useTeamStore();
+  const [pageLoading, setPageLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMyTeam().finally(() => setPageLoading(false));
+  }, []);
   const user = useAuthStore((s) => s.user);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
@@ -60,6 +66,8 @@ export default function Team() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (pageLoading) return <PageSkeleton type="team" />;
 
   return (
     <motion.div
