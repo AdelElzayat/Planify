@@ -547,22 +547,23 @@ export default function Chat() {
           ) : (
             <div className="py-2 space-y-0">
               {groupedMessages.map((group, idx) => {
+                const firstMsg = group[0];
+                // Show date divider when the calendar day changes between groups
                 const prevGroup = groupedMessages[idx - 1];
-                let showDivider = false;
+                let showDateDivider = false;
                 if (prevGroup) {
-                  const lastMsg = prevGroup[prevGroup.length - 1];
-                  const firstMsg = group[0];
-                  const diff = new Date(firstMsg.createdAt) - new Date(lastMsg.createdAt);
-                  if (diff > 5 * 60 * 1000) showDivider = true;
+                  const prevDate = new Date(prevGroup[0].createdAt).toLocaleDateString();
+                  const currDate = new Date(firstMsg.createdAt).toLocaleDateString();
+                  if (currDate !== prevDate) showDateDivider = true;
                 }
 
                 return (
                   <div key={group[0]._id || `${group[0].createdAt}-${idx}`}>
-                    {showDivider && (
+                    {showDateDivider && (
                       <div className="flex items-center gap-2 px-4 py-2">
                         <div className="flex-1 h-px bg-dark-200 dark:bg-dark-800" />
                         <span className="text-[10px] text-dark-400 font-medium uppercase flex-shrink-0">
-                          {new Date(group[0].createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {new Date(firstMsg.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                         <div className="flex-1 h-px bg-dark-200 dark:bg-dark-800" />
                       </div>
@@ -581,14 +582,6 @@ export default function Chat() {
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {!hasMoreMessages && messages.length > 0 && (
-            <div className="flex items-center gap-2 px-4 py-3">
-              <div className="flex-1 h-px bg-dark-200 dark:bg-dark-800" />
-              <span className="text-[10px] text-dark-400 font-medium">Beginning of conversation</span>
-              <div className="flex-1 h-px bg-dark-200 dark:bg-dark-800" />
             </div>
           )}
 
