@@ -4,6 +4,7 @@ import { FiCheckCircle, FiUsers, FiClock, FiGitCommit, FiTrendingUp, FiCalendar,
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import StatCard from '../components/dashboard/StatCard';
 import Avatar from '../components/common/Avatar';
+import PageSkeleton from '../components/common/PageLoader';
 import useTeamStore from '../stores/useTeamStore';
 import useTaskStore from '../stores/useTaskStore';
 import useAuthStore from '../stores/useAuthStore';
@@ -24,31 +25,6 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
-function SkeletonLoader() {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="card p-5">
-            <div className="skeleton w-10 h-10 rounded-xl mb-3" />
-            <div className="skeleton w-20 h-3 mb-2" />
-            <div className="skeleton w-16 h-6" />
-            <div className="skeleton w-full h-1 mt-3" />
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {[...Array(2)].map((_, i) => (
-          <div key={i} className="card p-6">
-            <div className="skeleton w-32 h-4 mb-4" />
-            <div className="skeleton w-full h-48" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function Dashboard() {
   const { team, fetchMyTeam } = useTeamStore();
   const { tasks, fetchTasks } = useTaskStore();
@@ -64,6 +40,8 @@ export default function Dashboard() {
     if (t) {
       await fetchTasks(t._id);
     }
+    // Minimum delay so skeleton is always visible for a beat
+    await new Promise(r => setTimeout(r, 400));
     setLoading(false);
   };
 
@@ -96,7 +74,7 @@ export default function Dashboard() {
       .slice(0, 5),
   [tasks]);
 
-  if (loading) return <SkeletonLoader />;
+  if (loading) return <PageSkeleton type="default" />;
 
   if (!team) {
     return (
