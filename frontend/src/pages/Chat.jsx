@@ -11,7 +11,7 @@ import Avatar from '../components/common/Avatar';
 // ---------------------------------------------------------------------------
 // Message group – groups consecutive messages from the same sender
 // ---------------------------------------------------------------------------
-function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingId, editContent, setEditContent, setEditingId }) {
+function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingId, editContent, setEditContent, setEditingId, deleteConfirm, setDeleteConfirm }) {
   const first = messages[0];
   const sender = first.sender;
 
@@ -142,7 +142,7 @@ function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingI
                 )}
               </AnimatePresence>
 
-              {/* Hover actions */}
+              {/* Hover actions + delete confirm */}
               {!isEditing && (
                 <div className="absolute -top-3 right-0 hidden group-hover/message:flex items-center gap-0.5 bg-white dark:bg-[#1e202e] border border-dark-200 dark:border-dark-700 rounded-lg shadow-lg px-1 py-0.5 z-10">
                   {['👍', '❤️', '😂', '😮'].map((emoji) => (
@@ -166,7 +166,7 @@ function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingI
                         <FiEdit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => onDelete(msg._id)}
+                        onClick={() => setDeleteConfirm(msg._id)}
                         className="p-0.5 rounded text-dark-400 hover:text-red-500 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors"
                       >
                         <FiTrash2 className="w-3.5 h-3.5" />
@@ -175,6 +175,33 @@ function MessageGroup({ messages, userId, onEdit, onDelete, onReaction, editingI
                   )}
                 </div>
               )}
+
+              {/* Delete confirmation toast */}
+              <AnimatePresence>
+                {deleteConfirm === msg._id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                    transition={{ duration: 0.12 }}
+                    className="flex items-center gap-2 bg-white dark:bg-[#1e202e] border border-dark-200 dark:border-dark-700 rounded-lg shadow-lg px-3 py-2 mt-1"
+                  >
+                    <span className="text-xs text-dark-500 dark:text-dark-400">Delete this message?</span>
+                    <button
+                      onClick={() => onDelete(msg._id)}
+                      className="px-2.5 py-1 rounded text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(null)}
+                      className="px-2.5 py-1 rounded text-xs font-medium bg-dark-100 dark:bg-dark-700 text-dark-600 dark:text-dark-300 hover:bg-dark-200 dark:hover:bg-dark-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })}
@@ -198,6 +225,7 @@ export default function Chat() {
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editContent, setEditContent] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showMembers, setShowMembers] = useState(true);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -228,11 +256,10 @@ export default function Chat() {
 
       socket.on('new_message', (message) => {
         setMessages((prev) => {
-          // Deduplicate: skip if temp message or already exists
+          // Deduplicate: skip if already exists
           if (prev.some((m) => m._id === message._id || m._id === `temp-${message._id}`)) return prev;
           return [...prev, message];
         });
-        // Auto-scroll to bottom on new messages
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 50);
@@ -254,7 +281,6 @@ export default function Chat() {
         setMessages((prev) => prev.filter((m) => m._id !== data._id));
       });
 
-      // On reconnect, fetch any missed messages
       socket.on('connect', () => {
         console.log('Socket reconnected, joining team...');
         if (team?._id) {
@@ -280,11 +306,9 @@ export default function Chat() {
       const { data } = await api.get(`/messages/${teamId}${params}`);
 
       if (before) {
-        // Paginated: prepend older messages
         setMessages((prev) => [...data.messages, ...prev]);
         setHasMoreMessages(data.hasMore);
 
-        // Restore scroll position after prepending
         requestAnimationFrame(() => {
           if (messagesContainerRef.current) {
             messagesContainerRef.current.scrollTop =
@@ -292,13 +316,11 @@ export default function Chat() {
           }
         });
       } else {
-        // Initial load
         setMessages(data.messages);
         setHasMoreMessages(data.hasMore);
         setIsLoading(false);
         initialLoadDone.current = true;
 
-        // Scroll to bottom
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView();
         }, 100);
@@ -309,13 +331,12 @@ export default function Chat() {
     }
   };
 
-  // ── Infinite scroll: load more when scrolling to top ──
+  // ── Infinite scroll ──
   const handleScroll = useCallback(() => {
     if (!messagesContainerRef.current || isLoadingMore || !hasMoreMessages) return;
 
     const { scrollTop } = messagesContainerRef.current;
 
-    // Trigger load more when within 200px of the top
     if (scrollTop < 200) {
       const oldestMsg = messages[0];
       if (oldestMsg && !oldestMsg._id.startsWith('temp-')) {
@@ -330,7 +351,6 @@ export default function Chat() {
 
   useEffect(() => {
     if (initialLoadDone.current) {
-      // Add scroll listener after initial load
       const container = messagesContainerRef.current;
       if (container) {
         container.addEventListener('scroll', handleScroll, { passive: true });
@@ -346,7 +366,6 @@ export default function Chat() {
     const content = newMessage;
     setNewMessage('');
 
-    // Optimistic: add to UI instantly
     const tempMsg = {
       _id: `temp-${Date.now()}`,
       content,
@@ -359,12 +378,10 @@ export default function Chat() {
     };
     setMessages((prev) => [...prev, tempMsg]);
 
-    // Auto-scroll
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 50);
 
-    // Fire API in background
     api.post(`/messages/${team._id}`, { content }).then(({ data }) => {
       setMessages((prev) => prev.map((m) => (m._id === tempMsg._id ? data : m)));
       if (socketRef.current?.connected) {
@@ -397,8 +414,8 @@ export default function Chat() {
   };
 
   const handleDelete = async (messageId) => {
-    if (!window.confirm('Delete this message?')) return;
     setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    setDeleteConfirm(null);
 
     api.delete(`/messages/${messageId}`).then(() => {
       if (socketRef.current?.connected) {
@@ -452,7 +469,6 @@ export default function Chat() {
     return groups;
   }, []);
 
-  // Online members
   const onlineMembers = team?.members?.filter((m) => m.user?._id) || [];
 
   if (!team) {
@@ -497,7 +513,6 @@ export default function Chat() {
 
         {/* ── Messages Area ── */}
         <div ref={messagesContainerRef} className="flex-1 overflow-y-auto smooth-scroll bg-white dark:bg-[#1a1c26]">
-          {/* Loading more indicator */}
           <AnimatePresence>
             {isLoadingMore && (
               <motion.div
@@ -548,7 +563,6 @@ export default function Chat() {
             <div className="py-2 space-y-0">
               {groupedMessages.map((group, idx) => {
                 const firstMsg = group[0];
-                // Show date divider when the calendar day changes between groups
                 const prevGroup = groupedMessages[idx - 1];
                 let showDateDivider = false;
                 if (prevGroup) {
@@ -578,6 +592,8 @@ export default function Chat() {
                       editContent={editContent}
                       setEditContent={setEditContent}
                       setEditingId={setEditingId}
+                      deleteConfirm={deleteConfirm}
+                      setDeleteConfirm={setDeleteConfirm}
                     />
                   </div>
                 );
