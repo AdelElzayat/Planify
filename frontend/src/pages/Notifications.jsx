@@ -6,13 +6,13 @@ import api from '../services/api';
 const typeConfig = {
   task_assigned: { icon: '📋', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30' },
   task_updated: { icon: '✏️', color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50 dark:bg-amber-950/30' },
-  new_commit: { icon: '💻', color: 'from-purple-500 to-pink-500', bg: 'bg-purple-50 dark:bg-purple-950/30' },
+  new_commit: { icon: '💻', color: 'from-primary-500 to-primary-600', bg: 'bg-primary-50 dark:bg-primary-950/30' },
   team_invite: { icon: '👋', color: 'from-emerald-500 to-green-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
   supervisor_feedback: { icon: '💬', color: 'from-primary-500 to-accent-500', bg: 'bg-primary-50 dark:bg-primary-950/30' },
   deadline: { icon: '⏰', color: 'from-red-500 to-rose-500', bg: 'bg-red-50 dark:bg-red-950/30' },
   milestone: { icon: '🏆', color: 'from-yellow-500 to-amber-500', bg: 'bg-yellow-50 dark:bg-yellow-950/30' },
   message: { icon: '💬', color: 'from-cyan-500 to-teal-500', bg: 'bg-cyan-50 dark:bg-cyan-950/30' },
-  member_joined: { icon: '👤', color: 'from-indigo-500 to-purple-500', bg: 'bg-indigo-50 dark:bg-indigo-950/30' },
+  member_joined: { icon: '👤', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/30' },
   announcement: { icon: '📢', color: 'from-rose-500 to-pink-500', bg: 'bg-rose-50 dark:bg-rose-950/30' },
 };
 

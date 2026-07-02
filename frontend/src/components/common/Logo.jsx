@@ -36,13 +36,13 @@ export default function Logo({ size = 'md', showText = true, animated = false })
             {/* Background gradient */}
             <defs>
               <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#7c3aed" />
-                <stop offset="50%" stopColor="#6d28d9" />
+                <stop offset="0%" stopColor="#2563eb" />
+                <stop offset="50%" stopColor="#1d4ed8" />
                 <stop offset="100%" stopColor="#06b6d4" />
               </linearGradient>
               <linearGradient id="logo-gradient-light" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#9b6dff" />
-                <stop offset="50%" stopColor="#7c3aed" />
+                <stop offset="0%" stopColor="#60a5fa" />
+                <stop offset="50%" stopColor="#2563eb" />
                 <stop offset="100%" stopColor="#22d3ee" />
               </linearGradient>
               <filter id="glow-logo">

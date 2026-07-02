@@ -8,9 +8,9 @@ const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const priorityColors = {
-  urgent: 'bg-gradient-to-r from-red-500 to-rose-500 text-white',
-  high: 'bg-gradient-to-r from-amber-500 to-orange-500 text-white',
-  medium: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white',
+  urgent: 'bg-gradient-to-r from-red-500 to-red-600 text-white',
+  high: 'bg-gradient-to-r from-amber-500 to-amber-600 text-white',
+  medium: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white',
   low: 'bg-gradient-to-r from-dark-400 to-dark-500 text-white',
 };
 

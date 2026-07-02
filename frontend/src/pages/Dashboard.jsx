@@ -9,8 +9,8 @@ import useTeamStore from '../stores/useTeamStore';
 import useTaskStore from '../stores/useTaskStore';
 import useAuthStore from '../stores/useAuthStore';
 
-const COLORS = ['#7c3aed', '#22d3ee', '#10b981', '#f59e0b', '#ef4444'];
-const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#636979'];
+const COLORS = ['#2563eb', '#22c55e', '#f59e0b', '#ef4444', '#64748b'];
+const PIE_COLORS = ['#22c55e', '#2563eb', '#f59e0b', '#64748b'];
 
 const containerVariants = {
   hidden: { opacity: 0 },

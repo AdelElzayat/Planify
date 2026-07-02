@@ -98,18 +98,18 @@ export default function Sidebar({ open, onClose }) {
                   rounded-xl text-sm font-medium
                   transition-colors duration-150
                   ${active
-                    ? 'bg-gradient-to-r from-primary-500/10 to-primary-600/5 text-primary-700 dark:text-primary-300 shadow-sm shadow-primary-500/5'
+                   ? 'bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-300 shadow-sm shadow-primary-500/5'
                     : 'text-dark-600 dark:text-dark-400 hover:bg-dark-50 dark:hover:bg-dark-800/30 hover:text-dark-900 dark:hover:text-dark-100'
                   }
                 `}
               >
-                {active && (
-                  <motion.div
-                    layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/10 to-primary-600/5 dark:from-primary-500/5 dark:to-primary-600/3"
-                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                  />
-                )}
+                  {active && (
+                    <motion.div
+                      layoutId="sidebar-active"
+                      className="absolute inset-0 rounded-xl bg-primary-500/10 dark:bg-primary-500/10"
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    />
+                  )}
                 <div className="relative z-10 flex items-center gap-3">
                   <div className={`
                     flex items-center justify-center w-5 h-5
@@ -124,7 +124,7 @@ export default function Sidebar({ open, onClose }) {
                   {active && !collapsed && (
                     <motion.div
                       layoutId="active-indicator"
-                      className="absolute -left-4 w-1 h-5 rounded-full bg-gradient-to-b from-primary-500 to-accent-500"
+                      className="absolute -left-4 w-1 h-5 rounded-full bg-primary-500"
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                     />
                   )}
@@ -151,7 +151,7 @@ export default function Sidebar({ open, onClose }) {
               rounded-xl text-sm font-medium
               transition-colors duration-150
               ${isActive('/profile')
-                ? 'bg-gradient-to-r from-primary-500/10 to-primary-600/5 text-primary-700 dark:text-primary-300'
+                ? 'bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-300'
                 : 'text-dark-600 dark:text-dark-400 hover:bg-dark-50 dark:hover:bg-dark-800/30 hover:text-dark-900 dark:hover:text-dark-100'
               }
             `}

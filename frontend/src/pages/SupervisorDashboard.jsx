@@ -5,8 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import useAuthStore from '../stores/useAuthStore';
 import api from '../services/api';
 
-const COLORS = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
-const PIE_COLORS = ['#636979', '#3b82f6', '#f59e0b', '#f97316', '#10b981'];
+const COLORS = ['#2563eb', '#06b6d4', '#22c55e', '#f59e0b', '#ef4444'];
+const PIE_COLORS = ['#64748b', '#2563eb', '#f59e0b', '#f97316', '#22c55e'];
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -354,13 +354,13 @@ export default function SupervisorDashboard() {
                 />
                 <Bar 
                   dataKey="Members" 
-                  fill="#7c3aed" 
+                  fill="#2563eb" 
                   radius={[6, 6, 0, 0]} 
                   animationDuration={1500}
                 />
                 <Bar 
                   dataKey="Progress" 
-                  fill="#22d3ee" 
+                  fill="#06b6d4" 
                   radius={[6, 6, 0, 0]} 
                   animationDuration={1500}
                   animationBegin={300}
