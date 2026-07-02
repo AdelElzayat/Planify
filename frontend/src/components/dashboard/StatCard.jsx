@@ -55,7 +55,7 @@ export default function StatCard({ icon: Icon, label, value, color, subtitle, tr
           </div>
           {trend && (
             <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-              trend > 0 ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400'
+              trend > 0 ? 'bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400'
             }`}>
               {trend > 0 ? '+' : ''}{trend}%
             </span>

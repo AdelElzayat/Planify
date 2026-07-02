@@ -143,7 +143,7 @@ export default function Dashboard() {
           label="Completed Tasks"
           value={completedTasks}
           subtitle={`/ ${tasks.length}`}
-          color="from-emerald-500 to-green-600"
+          color="from-green-500 to-green-600"
         />
         <StatCard
           icon={FiUsers}
@@ -155,7 +155,7 @@ export default function Dashboard() {
           icon={FiAward}
           label="Project Phase"
           value={team?.phase?.charAt(0).toUpperCase() + team?.phase?.slice(1) || 'N/A'}
-          color="from-amber-500 to-orange-600"
+          color="from-amber-500 to-amber-600"
         />
       </motion.div>
 
@@ -325,7 +325,7 @@ export default function Dashboard() {
             >
               <div className="relative">
                 <Avatar user={member.user} size="lg" />
-                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-surface-dark" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white dark:border-surface-dark" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-dark-900 dark:text-dark-100 truncate">

@@ -714,7 +714,7 @@ export default function Chat() {
                   >
                     <div className="relative flex-shrink-0">
                       <Avatar user={member.user} size="sm" />
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#1a1c26]" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white dark:border-[#1a1c26]" />
                     </div>
                     <span className="text-sm font-medium text-dark-700 dark:text-dark-300 truncate group-hover:text-dark-900 dark:group-hover:text-dark-100 transition-colors">
                       {member.user?.name || 'Unknown'}

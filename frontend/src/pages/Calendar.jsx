@@ -116,22 +116,18 @@ export default function CalendarPage() {
               </h2>
             </div>
             <div className="flex items-center gap-1">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button
                 onClick={prevMonth}
-                className="p-1.5 sm:p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg border border-dark-200 dark:border-dark-700 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
               >
-                <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-dark-500" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                <FiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-dark-700 dark:text-dark-300" />
+              </button>
+              <button
                 onClick={nextMonth}
-                className="p-1.5 sm:p-2 rounded-lg hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg border border-dark-200 dark:border-dark-700 hover:bg-dark-100 dark:hover:bg-dark-800/50 transition-colors"
               >
-                <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-dark-500" />
-              </motion.button>
+                <FiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-dark-700 dark:text-dark-300" />
+              </button>
             </div>
           </div>
 
@@ -151,11 +147,11 @@ export default function CalendarPage() {
                 key={index}
                 whileHover={day ? { scale: 1.02 } : {}}
                 onClick={() => day && setSelectedDay(selectedDay?.day === day.day ? null : day)}
-                className={`relative min-h-[50px] sm:min-h-[80px] md:min-h-[90px] p-1 sm:p-2 rounded-lg sm:rounded-xl border transition-all duration-200 ${
+                className={`relative min-h-[50px] sm:min-h-[80px] md:min-h-[90px] p-1 sm:p-2 rounded-lg sm:rounded-xl border-2 transition-all duration-200 ${
                   day
                     ? `${selectedDay?.day === day.day 
-                        ? 'border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-950/20' 
-                        : 'border-dark-100 dark:border-dark-800/60 hover:border-dark-200 dark:hover:border-dark-700/80 hover:bg-dark-50/50 dark:hover:bg-dark-800/20 cursor-pointer'
+                        ? 'border-primary-400 dark:border-primary-600 bg-primary-50/50 dark:bg-primary-950/20' 
+                        : 'border-dark-200 dark:border-dark-700 hover:border-dark-300 dark:hover:border-dark-600 hover:bg-dark-50/50 dark:hover:bg-dark-800/20 cursor-pointer'
                       }`
                     : 'border-transparent'
                 }`}

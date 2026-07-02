@@ -123,7 +123,7 @@ export default function SupervisorDashboard() {
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { icon: FiUsers, label: 'Assigned Teams', value: teams.length, color: 'from-primary-500 to-accent-500', subtitle: 'teams' },
-          { icon: FiAward, label: 'Total Students', value: teams.reduce((acc, t) => acc + (t.members?.length || 0), 0), color: 'from-emerald-500 to-green-600', subtitle: 'students' },
+          { icon: FiAward, label: 'Total Students', value: teams.reduce((acc, t) => acc + (t.members?.length || 0), 0), color: 'from-green-500 to-green-600', subtitle: 'students' },
           { icon: FiActivity, label: 'Active Teams', value: teams.filter((t) => t.status === 'active').length, color: 'from-blue-500 to-cyan-500', subtitle: 'active' },
         ].map((stat, idx) => (
           <motion.div
@@ -300,7 +300,7 @@ export default function SupervisorDashboard() {
                   <div className="mt-4 pt-4 border-t border-dark-100 dark:border-dark-800/60">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-dark-500 dark:text-dark-400">Completion rate</span>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">{completionRate}%</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">{completionRate}%</span>
                     </div>
                     <div className="mt-2 progress-bar">
                       <motion.div

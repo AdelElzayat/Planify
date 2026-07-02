@@ -189,7 +189,7 @@ export default function Team() {
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar user={member.user} size="lg" />
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-surface-dark" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-surface-dark" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-dark-900 dark:text-dark-100">
@@ -228,8 +228,8 @@ export default function Team() {
                 <FiShield className="w-4 h-4 text-primary-500" />
                 Supervisor
               </h3>
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-emerald-500/5 to-green-500/5 border border-emerald-200/30 dark:border-emerald-800/30">
-                <Avatar user={team.supervisor} size="xl" className="shadow-lg shadow-emerald-500/20" />
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-green-500/5 to-green-500/5 border border-green-200/30 dark:border-green-800/30">
+                <Avatar user={team.supervisor} size="xl" className="shadow-lg shadow-green-500/20" />
                 <div>
                   <p className="text-base font-medium text-dark-900 dark:text-dark-100">{team.supervisor?.name}</p>
                   <p className="text-sm text-dark-500">{team.supervisor?.email}</p>

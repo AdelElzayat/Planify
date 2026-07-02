@@ -11,14 +11,14 @@ const columns = [
   { id: 'todo', title: 'To Do', gradient: 'from-blue-500 to-blue-600', light: 'bg-blue-50/60 dark:bg-blue-950/20', icon: '📝' },
   { id: 'in_progress', title: 'In Progress', gradient: 'from-amber-500 to-amber-600', light: 'bg-amber-50/60 dark:bg-amber-950/20', icon: '⚡' },
   { id: 'testing', title: 'Testing', gradient: 'from-primary-500 to-primary-600', light: 'bg-primary-50/60 dark:bg-primary-950/20', icon: '🧪' },
-  { id: 'completed', title: 'Completed', gradient: 'from-emerald-500 to-emerald-600', light: 'bg-emerald-50/60 dark:bg-emerald-950/20', icon: '✅' },
+  { id: 'completed', title: 'Completed', gradient: 'from-green-500 to-green-600', light: 'bg-green-50/60 dark:bg-green-950/20', icon: '✅' },
 ];
 
 const priorityConfig = {
   low: { gradient: 'from-slate-400 to-slate-500', bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700' },
   medium: { gradient: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800' },
-  high: { gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
-  urgent: { gradient: 'from-red-500 to-rose-500', bg: 'bg-red-50 dark:bg-red-950/40', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800' },
+  high: { gradient: 'from-amber-500 to-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
+  urgent: { gradient: 'from-red-500 to-red-600', bg: 'bg-red-50 dark:bg-red-950/40', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800' },
 };
 
 const columnAccent = {
@@ -26,7 +26,7 @@ const columnAccent = {
   todo: { bg: 'bg-blue-500', text: 'text-blue-600 dark:text-blue-400', soft: 'bg-blue-50 dark:bg-blue-950/30' },
   in_progress: { bg: 'bg-amber-500', text: 'text-amber-600 dark:text-amber-400', soft: 'bg-amber-50 dark:bg-amber-950/30' },
   testing: { bg: 'bg-primary-500', text: 'text-primary-600 dark:text-primary-400', soft: 'bg-primary-50 dark:bg-primary-950/30' },
-  completed: { bg: 'bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400', soft: 'bg-emerald-50 dark:bg-emerald-950/30' },
+  completed: { bg: 'bg-green-500', text: 'text-green-600 dark:text-green-400', soft: 'bg-green-50 dark:bg-green-950/30' },
 };
 
 function TaskCard({ task, index, onDelete }) {
@@ -229,14 +229,12 @@ export default function Tasks() {
             Drag and drop to update task status
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={() => setShowCreate(true)}
-          className="btn-primary self-start sm:self-auto"
+          className="btn-primary self-start sm:self-auto border-2 border-primary-400 dark:border-primary-600 hover:border-primary-500 dark:hover:border-primary-500"
         >
           <FiPlus className="w-4 h-4" /> New Task
-        </motion.button>
+        </button>
       </motion.div>
 
       {/* Kanban Board */}
