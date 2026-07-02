@@ -1,4 +1,5 @@
 const Message = require('../models/Message');
+const { createNotification } = require('./notificationController');
 
 const MESSAGES_PER_PAGE = 50;
 
@@ -57,6 +58,26 @@ const sendMessage = async (req, res) => {
       .populate('sender', 'name email avatar')
       .lean()
       .exec();
+
+    // Get team to notify other members
+    const Team = require('../models/Team');
+    const team = await Team.findById(req.params.teamId);
+    
+    if (team) {
+      // Notify all team members except the sender
+      team.members.forEach(member => {
+        if (member.user.toString() !== req.user._id.toString()) {
+          createNotification(
+            member.user,
+            'message',
+            'New Message',
+            `${req.user.name} sent a message in ${team.name}`,
+            { teamId: team._id, messageId: message._id },
+            team._id
+          );
+        }
+      });
+    }
 
     res.status(201).json(populated);
   } catch (error) {

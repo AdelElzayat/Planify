@@ -62,4 +62,23 @@ const createNotification = async (userId, type, title, message, data = {}, teamI
   }
 };
 
-module.exports = { getNotifications, markAsRead, markAllAsRead, createNotification };
+const createTestNotification = async (req, res) => {
+  try {
+    const { type, title, message } = req.body;
+    
+    await createNotification(
+      req.user._id,
+      type || 'announcement',
+      title || 'Test Notification',
+      message || 'This is a test notification',
+      {},
+      null
+    );
+
+    res.json({ message: 'Test notification created' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getNotifications, markAsRead, markAllAsRead, createNotification, createTestNotification };
