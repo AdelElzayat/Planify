@@ -11,9 +11,31 @@ export default function Login() {
     const prevBody = document.body.style.overflow;
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+
+    const style = document.createElement('style');
+    style.textContent = `
+      input[type="password"]::-webkit-credentials-auto-fill-button,
+      input[type="password"]::-webkit-caps-lock-indicator,
+      input[type="password"]::-webkit-contacts-auto-fill-button,
+      input[type="password"]::-webkit-strong-password-suggestion {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        right: -9999px !important;
+      }
+      input[type="password"]::-ms-reveal,
+      input[type="password"]::-ms-clear {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
     return () => {
       document.documentElement.style.overflow = prevHtml;
       document.body.style.overflow = prevBody;
+      document.head.removeChild(style);
     };
   }, []);
 
@@ -122,11 +144,15 @@ export default function Login() {
                   placeholder="Enter your password"
                   className="input pl-10 pr-10"
                   required
+                  autoComplete="off"
+                  data-lpignore="true"
+                  data-form-type="other"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-dark-400 hover:text-dark-600 dark:hover:text-dark-200 transition-colors"
+                  className="absolute right-3 -bottom-0 -translate-y-1/2 -mt-3 h-6 w-6 flex items-center justify-center text-dark-400 hover:text-dark-600 dark:hover:text-dark-200 transition-colors"
+                  style={{ background: 'transparent', border: 'none' }}
                 >
                   {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                 </button>
