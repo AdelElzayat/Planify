@@ -36,7 +36,7 @@ function AnimatedCounter({ value, suffix = '' }) {
   );
 }
 
-export default function StatCard({ icon: Icon, label, value, color, subtitle, trend }) {
+export default function StatCard({ icon: Icon, label, value, color, subtitle, trend, progress }) {
   return (
     <motion.div
       whileHover={{ y: -3, transition: { duration: 0.15 } }}
@@ -76,7 +76,7 @@ export default function StatCard({ icon: Icon, label, value, color, subtitle, tr
         <div className="mt-3 h-1 rounded-full bg-dark-100 dark:bg-dark-800 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
-            animate={{ width: `${Math.min(parseInt(value) || 0, 100)}%` }}
+            animate={{ width: `${progress !== undefined ? progress : Math.min(parseInt(value) || 0, 100)}%` }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
             className={`h-full rounded-full bg-gradient-to-r ${color}`}
           />

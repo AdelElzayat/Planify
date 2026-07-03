@@ -144,12 +144,15 @@ export default function Dashboard() {
           value={completedTasks}
           subtitle={`/ ${tasks.length}`}
           color="from-green-500 to-green-600"
+          progress={completedPercentage}
         />
         <StatCard
           icon={FiUsers}
           label="Team Members"
           value={team?.members?.length || 0}
+          subtitle={`/ 10`}
           color="from-blue-500 to-cyan-500"
+          progress={Math.min(((team?.members?.length || 0) / 10) * 100, 100)}
         />
         <StatCard
           icon={FiAward}

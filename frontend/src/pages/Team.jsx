@@ -168,9 +168,9 @@ export default function Team() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="section-title">
                 <FiUsers className="w-4 h-4 text-primary-500" />
-                Team Members ({team?.members?.length})
+                Team Members ({team?.members?.length}/10)
               </h3>
-              {user?.teamRole === 'leader' && (
+              {user?.teamRole === 'leader' && (team?.members?.length < 10) && (
                 <button className="btn-secondary btn-sm">
                   <FiUserPlus className="w-4 h-4" /> Invite
                 </button>

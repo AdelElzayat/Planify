@@ -40,6 +40,10 @@ const joinTeam = async (req, res) => {
       return res.status(400).json({ message: 'Team is not active' });
     }
 
+    if (team.members.length >= 10) {
+      return res.status(400).json({ message: 'Team has reached maximum capacity of 10 members' });
+    }
+
     const alreadyMember = team.members.find(
       m => m.user.toString() === req.user._id.toString()
     );
