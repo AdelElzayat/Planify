@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiLink, FiCheck, FiX, FiLogIn, FiCode } from 'react-icons/fi';
+import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiLink, FiCheck, FiX, FiLogIn, FiCode, FiShare2 } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
 import api from '../services/api';
@@ -20,20 +21,33 @@ const itemVariants = {
 export default function Team() {
   const { team, fetchMyTeam, createTeam, joinTeam, updateTeam, removeMember, loading } = useTeamStore();
   const [pageLoading, setPageLoading] = useState(true);
-
-  useEffect(() => {
-    fetchMyTeam().finally(() => setPageLoading(false));
-  }, []);
   const user = useAuthStore((s) => s.user);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamDesc, setTeamDesc] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle invite link from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const inviteFromUrl = params.get('invite');
+    if (inviteFromUrl && !team) {
+      setInviteCode(inviteFromUrl);
+      setShowJoin(true);
+      // Clean up URL
+      navigate('/team', { replace: true });
+    }
+  }, [location, navigate, team]);
 
   useEffect(() => {
-    fetchMyTeam();
+    fetchMyTeam().finally(() => setPageLoading(false));
   }, []);
 
   const handleCreate = async (e) => {
@@ -65,6 +79,17 @@ export default function Team() {
     navigator.clipboard.writeText(team?.inviteCode || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyInviteLink = () => {
+    const inviteLink = `${window.location.origin}/team?invite=${team?.inviteCode}`;
+    navigator.clipboard.writeText(inviteLink);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const getInviteLink = () => {
+    return `${window.location.origin}/team?invite=${team?.inviteCode}`;
   };
 
   if (pageLoading) return <PageSkeleton type="team" />;
@@ -171,7 +196,10 @@ export default function Team() {
                 Team Members ({team?.members?.length}/10)
               </h3>
               {user?.teamRole === 'leader' && (team?.members?.length < 10) && (
-                <button className="btn-secondary btn-sm">
+                <button 
+                  onClick={() => setShowInviteModal(true)}
+                  className="btn-secondary btn-sm"
+                >
                   <FiUserPlus className="w-4 h-4" /> Invite
                 </button>
               )}
@@ -240,7 +268,97 @@ export default function Team() {
         </>
       )}
 
-      {/* Modals */}
+      {/* Invite Link Modal */}
+      <AnimatePresence>
+        {showInviteModal && team && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => setShowInviteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.93, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.93, opacity: 0, y: 12 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="card p-6 w-full max-w-md shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-dark-900 dark:text-dark-100">Invite Members</h3>
+                <button onClick={() => setShowInviteModal(false)} className="p-1.5 rounded-lg text-dark-400 hover:bg-dark-100 dark:hover:bg-dark-800 transition-colors duration-150">
+                  <FiX className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="mb-4 p-3 rounded-xl bg-primary-50 dark:bg-primary-950/30 border border-primary-200/30 dark:border-primary-800/30">
+                <p className="text-sm text-primary-700 dark:text-primary-300">
+                  Share this invite link with your teammates to join your team
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {/* Invite Link */}
+                <div>
+                  <label className="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1.5">Invite Link</label>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      value={getInviteLink()} 
+                      readOnly 
+                      className="input text-sm" 
+                      onClick={(e) => e.target.select()}
+                    />
+                    <button
+                      onClick={copyInviteLink}
+                      className={`btn-sm ${linkCopied ? 'btn-soft' : 'btn-secondary'}`}
+                    >
+                      {linkCopied ? (
+                        <span className="flex items-center gap-1">
+                          <FiCheck className="w-3.5 h-3.5" /> Copied!
+                        </span>
+                      ) : (
+                        <FiCopy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Invite Code */}
+                <div>
+                  <label className="block text-sm font-medium text-dark-700 dark:text-dark-300 mb-1.5">Or Invite Code</label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-4 py-2.5 rounded-lg bg-white dark:bg-dark-900 border border-dark-200 dark:border-dark-700 text-lg font-mono text-center tracking-widest text-primary-600 dark:text-primary-400">
+                      {team?.inviteCode}
+                    </code>
+                    <button
+                      onClick={copyInviteCode}
+                      className={`btn-sm ${copied ? 'btn-soft' : 'btn-secondary'}`}
+                    >
+                      {copied ? (
+                        <span className="flex items-center gap-1">
+                          <FiCheck className="w-3.5 h-3.5" /> Copied!
+                        </span>
+                      ) : (
+                        <FiCopy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button type="button" onClick={() => setShowInviteModal(false)} className="btn-secondary">Close</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Team Modal */}
       <AnimatePresence>
         {showCreate && (
           <motion.div
