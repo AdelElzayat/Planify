@@ -42,6 +42,21 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  refreshUser: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const { data } = await api.get('/auth/me');
+      const { avatar, ...safeUser } = data;
+      try { localStorage.setItem('user', JSON.stringify(safeUser)); } catch { localStorage.removeItem('user'); }
+      set({ user: data });
+    } catch {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      set({ user: null, token: null });
+    }
+  },
+
   loadUser: async () => {
     const token = localStorage.getItem('token');
     if (!token) { set({ user: null }); return; }

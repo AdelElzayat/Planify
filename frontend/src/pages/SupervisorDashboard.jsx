@@ -20,14 +20,21 @@ const itemVariants = {
 
 export default function SupervisorDashboard() {
   const user = useAuthStore((s) => s.user);
+  const refreshUser = useAuthStore((s) => s.refreshUser);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [teamTasks, setTeamTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(true);
 
   useEffect(() => {
+    const checkAccess = async () => {
+      await refreshUser();
+      setRefreshing(false);
+    };
+    checkAccess();
     loadTeams();
-  }, []);
+  }, [refreshUser]);
 
   useEffect(() => {
     if (selectedTeam) {
@@ -69,6 +76,14 @@ export default function SupervisorDashboard() {
   const completedTasks = teamTasks.filter((t) => t.status === 'completed').length;
   const totalTasks = teamTasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  if (refreshing) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
 
   if (!user?.isSupervisor) {
     return (
