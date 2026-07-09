@@ -142,6 +142,84 @@ const updateTeam = async (req, res) => {
   }
 };
 
+const deleteTeam = async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    if (team.leader.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the team leader can delete the team' });
+    }
+
+    // Remove team reference from all members
+    await User.updateMany(
+      { team: team._id },
+      { team: null, teamRole: 'none' }
+    );
+
+    // Remove team from supervisor's supervised teams if applicable
+    if (team.supervisor) {
+      await User.findByIdAndUpdate(team.supervisor, {
+        $pull: { supervisedTeams: team._id }
+      });
+    }
+
+    // Delete associated repository
+    await Repository.findOneAndDelete({ team: team._id });
+
+    // Delete the team
+    await Team.findByIdAndDelete(team._id);
+
+    res.json({ message: 'Team deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const leaveTeam = async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.id);
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    if (team.leader.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Team leader cannot leave the team. Transfer leadership or disband the team first.' });
+    }
+
+    const memberIndex = team.members.findIndex(
+      m => m.user.toString() === req.user._id.toString()
+    );
+    if (memberIndex === -1) {
+      return res.status(400).json({ message: 'You are not a member of this team' });
+    }
+
+    team.members.splice(memberIndex, 1);
+    await team.save();
+
+    await User.findByIdAndUpdate(req.user._id, {
+      team: null,
+      teamRole: 'none'
+    });
+
+    // Notify team leader
+    await createNotification(
+      team.leader,
+      'member_left',
+      'Team Member Left',
+      `${req.user.name} has left the team`,
+      { teamId: team._id },
+      team._id
+    );
+
+    res.json({ message: 'Successfully left the team' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const removeMember = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
@@ -305,7 +383,9 @@ module.exports = {
   getTeam,
   getMyTeam,
   updateTeam,
+  deleteTeam,
   removeMember,
+  leaveTeam,
   inviteMember,
   assignSupervisor,
   addMilestone,

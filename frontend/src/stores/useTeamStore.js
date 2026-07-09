@@ -85,6 +85,30 @@ const useTeamStore = create((set, get) => ({
     }
   },
 
+  deleteTeam: async (teamId) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await api.delete(`/teams/${teamId}`);
+      set({ team: null, loading: false });
+      return data;
+    } catch (error) {
+      set({ loading: false });
+      throw error.response?.data?.message;
+    }
+  },
+
+  leaveTeam: async (teamId) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await api.post(`/teams/${teamId}/leave`);
+      set({ team: null, loading: false });
+      return data;
+    } catch (error) {
+      set({ loading: false });
+      throw error.response?.data?.message;
+    }
+  },
+
   clearTeam: () => set({ team: null, error: null }),
 }));
 

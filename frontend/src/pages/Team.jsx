@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiLink, FiCheck, FiX, FiLogIn, FiCode, FiShare2 } from 'react-icons/fi';
+import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiLink, FiCheck, FiX, FiLogIn, FiLogOut, FiTrash2, FiCode, FiShare2 } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
@@ -19,7 +19,9 @@ const itemVariants = {
 };
 
 export default function Team() {
-  const { team, fetchMyTeam, createTeam, joinTeam, updateTeam, removeMember, loading } = useTeamStore();
+  const { team, fetchMyTeam, createTeam, joinTeam, updateTeam, removeMember, leaveTeam, deleteTeam, loading } = useTeamStore();
+  const [leaving, setLeaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const user = useAuthStore((s) => s.user);
   const [showCreate, setShowCreate] = useState(false);
@@ -67,6 +69,32 @@ export default function Team() {
       setShowJoin(false);
       setInviteCode('');
     } catch {}
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you absolutely sure you want to delete this team? This will permanently remove the team and its repository. All members will be removed from the team.')) {
+      setDeleting(true);
+      try {
+        await deleteTeam(team._id);
+      } catch (err) {
+        alert(err || 'Failed to delete team');
+      } finally {
+        setDeleting(false);
+      }
+    }
+  };
+
+  const handleLeave = async () => {
+    if (window.confirm('Are you sure you want to leave this team? You can join another team afterwards.')) {
+      setLeaving(true);
+      try {
+        await leaveTeam(team._id);
+      } catch (err) {
+        alert(err || 'Failed to leave team');
+      } finally {
+        setLeaving(false);
+      }
+    }
   };
 
   const handleRemoveMember = async (memberId) => {
@@ -263,6 +291,54 @@ export default function Team() {
                   <p className="text-sm text-dark-500">{team.supervisor?.email}</p>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {/* Danger Zone - Delete Team for leader, Leave Team for members */}
+          {user?.teamRole === 'leader' ? (
+            <motion.div variants={itemVariants} className="card p-6 border-2 border-red-200 dark:border-red-900/50">
+              <h3 className="section-title mb-4 text-red-600 dark:text-red-400">
+                <FiTrash2 className="w-4 h-4" />
+                Danger Zone
+              </h3>
+              <p className="text-sm text-dark-500 dark:text-dark-400 mb-4">
+                Deleting the team will permanently remove the team, its repository, and remove all members. This action cannot be undone.
+              </p>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="btn-danger btn-lg w-full sm:w-auto"
+              >
+                {deleting ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    Deleting...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <FiTrash2 className="w-4 h-4" /> Delete Team
+                  </span>
+                )}
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div variants={itemVariants} className="flex justify-center pt-4">
+              <button
+                onClick={handleLeave}
+                disabled={leaving}
+                className="btn-danger btn-lg px-8"
+              >
+                {leaving ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    Leaving...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <FiLogOut className="w-4 h-4" /> Leave Team
+                  </span>
+                )}
+              </button>
             </motion.div>
           )}
         </>
