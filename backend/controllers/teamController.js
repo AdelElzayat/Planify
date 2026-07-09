@@ -186,7 +186,22 @@ const leaveTeam = async (req, res) => {
     }
 
     if (team.leader.toString() === req.user._id.toString()) {
-      return res.status(400).json({ message: 'Team leader cannot leave the team. Transfer leadership or disband the team first.' });
+      if (team.members.length > 1) {
+        return res.status(400).json({ message: 'Team leader cannot leave the team when there are other members. Delete the team instead.' });
+      }
+      // If the team is empty (only leader), allow the leader to leave
+      await Team.findByIdAndDelete(team._id);
+      await Repository.findOneAndDelete({ team: team._id });
+      if (team.supervisor) {
+        await User.findByIdAndUpdate(team.supervisor, {
+          $pull: { supervisedTeams: team._id }
+        });
+      }
+      await User.findByIdAndUpdate(req.user._id, {
+        team: null,
+        teamRole: 'none'
+      });
+      return res.json({ message: 'Successfully left the team' });
     }
 
     const memberIndex = team.members.findIndex(

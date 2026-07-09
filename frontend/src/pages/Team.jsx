@@ -294,8 +294,8 @@ export default function Team() {
             </motion.div>
           )}
 
-          {/* Danger Zone - Delete Team for leader, Leave Team for members */}
-          {user?.teamRole === 'leader' ? (
+          {/* Danger Zone - Delete Team for leader (with members), Leave Team for leader (alone) or members */}
+          {user?.teamRole === 'leader' && team?.members?.length > 1 ? (
             <motion.div variants={itemVariants} className="card p-6 border-2 border-red-200 dark:border-red-900/50">
               <h3 className="section-title mb-4 text-red-600 dark:text-red-400">
                 <FiTrash2 className="w-4 h-4" />
