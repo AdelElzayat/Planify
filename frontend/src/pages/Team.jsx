@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiLink, FiCheck, FiX, FiLogIn, FiLogOut, FiTrash2, FiCode, FiShare2 } from 'react-icons/fi';
+import { FiPlus, FiCopy, FiUserPlus, FiUserMinus, FiShield, FiMail, FiUsers, FiLink, FiCheck, FiX, FiLogIn, FiLogOut, FiTrash2, FiCode, FiShare2, FiAlertTriangle, FiArrowRight, FiAlertCircle } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useTeamStore from '../stores/useTeamStore';
 import useAuthStore from '../stores/useAuthStore';
@@ -18,6 +18,16 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
 };
 
+const modalOverlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.15 } },
+};
+
+const modalContentVariants = {
+  hidden: { scale: 0.92, opacity: 0, y: 16 },
+  visible: { scale: 1, opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
+};
+
 export default function Team() {
   const { team, fetchMyTeam, createTeam, joinTeam, updateTeam, removeMember, leaveTeam, deleteTeam, loading } = useTeamStore();
   const [leaving, setLeaving] = useState(false);
@@ -27,6 +37,8 @@ export default function Team() {
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamDesc, setTeamDesc] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -72,28 +84,26 @@ export default function Team() {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you absolutely sure you want to delete this team? This will permanently remove the team and its repository. All members will be removed from the team.')) {
-      setDeleting(true);
-      try {
-        await deleteTeam(team._id);
-      } catch (err) {
-        alert(err || 'Failed to delete team');
-      } finally {
-        setDeleting(false);
-      }
+    setDeleting(true);
+    try {
+      await deleteTeam(team._id);
+      setShowDeleteConfirm(false);
+    } catch (err) {
+      alert(err || 'Failed to delete team');
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleLeave = async () => {
-    if (window.confirm('Are you sure you want to leave this team? You can join another team afterwards.')) {
-      setLeaving(true);
-      try {
-        await leaveTeam(team._id);
-      } catch (err) {
-        alert(err || 'Failed to leave team');
-      } finally {
-        setLeaving(false);
-      }
+    setLeaving(true);
+    try {
+      await leaveTeam(team._id);
+      setShowLeaveConfirm(false);
+    } catch (err) {
+      alert(err || 'Failed to leave team');
+    } finally {
+      setLeaving(false);
     }
   };
 
@@ -305,7 +315,7 @@ export default function Team() {
                 Deleting the team will permanently remove the team, its repository, and remove all members. This action cannot be undone.
               </p>
               <button
-                onClick={handleDelete}
+                onClick={() => setShowDeleteConfirm(true)}
                 disabled={deleting}
                 className="btn-danger btn-lg w-full sm:w-auto"
               >
@@ -324,7 +334,7 @@ export default function Team() {
           ) : (
             <motion.div variants={itemVariants} className="flex justify-center pt-4">
               <button
-                onClick={handleLeave}
+                onClick={() => setShowLeaveConfirm(true)}
                 disabled={leaving}
                 className="btn-danger btn-lg px-8"
               >
@@ -344,22 +354,24 @@ export default function Team() {
         </>
       )}
 
+      {/* ===== MODALS ===== */}
+
       {/* Invite Link Modal */}
       <AnimatePresence>
         {showInviteModal && team && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowInviteModal(false)}
           >
             <motion.div
-              initial={{ scale: 0.93, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.93, opacity: 0, y: 12 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              variants={modalContentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
               className="card p-6 w-full max-w-md shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
@@ -434,22 +446,184 @@ export default function Team() {
         )}
       </AnimatePresence>
 
+      {/* Delete Team Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => !deleting && setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              variants={modalContentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="card p-0 w-full max-w-md shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Top accent bar */}
+              <div className="h-1.5 bg-gradient-to-r from-red-500 to-red-600" />
+              
+              <div className="p-6">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/40 flex items-center justify-center mx-auto mb-4">
+                  <FiAlertTriangle className="w-8 h-8 text-red-500" />
+                </div>
+
+                {/* Title & Description */}
+                <h3 className="text-xl font-bold text-center text-dark-900 dark:text-dark-100 mb-2">
+                  Delete Team?
+                </h3>
+                <p className="text-sm text-center text-dark-500 dark:text-dark-400 mb-2">
+                  This will permanently delete <strong className="text-dark-800 dark:text-dark-200">{team?.name}</strong> and everything associated with it.
+                </p>
+
+                {/* Consequences List */}
+                <div className="mt-4 space-y-2 p-4 rounded-xl bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40">
+                  <div className="flex items-start gap-2.5">
+                    <FiX className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-red-700 dark:text-red-300">All {team?.members?.length} members will be removed</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <FiX className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-red-700 dark:text-red-300">The team repository will be deleted</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <FiX className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                    <span className="text-sm text-red-700 dark:text-red-300">This action cannot be undone</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleting}
+                    className="btn-secondary flex-1"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="btn-danger flex-1"
+                  >
+                    {deleting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                        Deleting...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <FiTrash2 className="w-4 h-4" /> Yes, Delete Team
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Leave Team Confirmation Modal */}
+      <AnimatePresence>
+        {showLeaveConfirm && (
+          <motion.div
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            onClick={() => !leaving && setShowLeaveConfirm(false)}
+          >
+            <motion.div
+              variants={modalContentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              className="card p-0 w-full max-w-md shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Top accent bar */}
+              <div className="h-1.5 bg-gradient-to-r from-yellow-500 to-orange-500" />
+              
+              <div className="p-6">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-2xl bg-yellow-50 dark:bg-yellow-950/40 flex items-center justify-center mx-auto mb-4">
+                  <FiLogOut className="w-8 h-8 text-yellow-500" />
+                </div>
+
+                {/* Title & Description */}
+                <h3 className="text-xl font-bold text-center text-dark-900 dark:text-dark-100 mb-2">
+                  Leave Team?
+                </h3>
+                <p className="text-sm text-center text-dark-500 dark:text-dark-400 mb-2">
+                  You're about to leave <strong className="text-dark-800 dark:text-dark-200">{team?.name}</strong>. You can join another team afterwards.
+                </p>
+
+                {/* Info Box */}
+                <div className="mt-4 p-4 rounded-xl bg-yellow-50/50 dark:bg-yellow-950/20 border border-yellow-100 dark:border-yellow-900/40">
+                  <div className="flex items-start gap-2.5">
+                    <FiAlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
+                    <span className="text-sm text-yellow-700 dark:text-yellow-300">
+                      You won't be able to access this team's repository or resources after leaving.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setShowLeaveConfirm(false)}
+                    disabled={leaving}
+                    className="btn-secondary flex-1"
+                  >
+                    Stay
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    disabled={leaving}
+                    className="btn-danger flex-1"
+                  >
+                    {leaving ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                        Leaving...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <FiLogOut className="w-4 h-4" /> Yes, Leave Team
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Create Team Modal */}
       <AnimatePresence>
         {showCreate && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowCreate(false)}
           >
             <motion.div
-              initial={{ scale: 0.93, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.93, opacity: 0, y: 12 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              variants={modalContentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
               className="card p-6 w-full max-w-md shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
@@ -486,18 +660,18 @@ export default function Team() {
 
         {showJoin && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowJoin(false)}
           >
             <motion.div
-              initial={{ scale: 0.93, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.93, opacity: 0, y: 12 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              variants={modalContentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
               className="card p-6 w-full max-w-md shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
