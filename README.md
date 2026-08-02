@@ -35,6 +35,7 @@
 - [Usage Guide](#usage-guide)
 - [API Overview](#api-overview)
 - [Security](#security)
+- [Roadmap](#roadmap)
 - [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
 - [License](#license)
@@ -519,6 +520,18 @@ All endpoints are prefixed with `/api`.
 - **File Upload Limits:** Multer enforces file size limits (10MB for chat uploads, 20MB for repository files).
 - **Token Expiration:** JWT tokens expire after 7 days by default.
 - **Auto-Logout:** Frontend intercepts 401 responses and clears stored credentials.
+
+---
+
+## 🗺 Roadmap
+
+<div align="center">
+
+![Project Roadmap](docs/roadmap.png)
+
+</div>
+
+The roadmap above outlines the full development journey and future direction of the Planify platform — from core feature milestones to upcoming enhancements and long-term vision.
 
 ---
 
