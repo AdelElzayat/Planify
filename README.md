@@ -527,7 +527,7 @@ All endpoints are prefixed with `/api`.
 
 <div align="center">
 
-![Project Roadmap](docs/roadmap.png)
+![Project Roadmap](docs/screenshots/roadmap.png)
 
 </div>
 
